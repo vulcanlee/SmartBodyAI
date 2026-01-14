@@ -12,12 +12,23 @@
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet @rendermode="InteractiveServer" />
+
+    @* Syncfusion *@
+    <link href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" rel="stylesheet" />
+
+    <link href="_content/AntDesign/css/ant-design-blazor.css" rel="stylesheet"> <!-- introduced here automatically -->
+    <link antblazor-css />
 </head>
 
 <body>
     <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+
+    @* Syncfusion *@
+    <script src="_content/Syncfusion.Blazor/scripts/syncfusion-blazor.min.js" type="text/javascript"></script>    @* Blazor.Bootstrap *@
+    <script src="_content/AntDesign/js/ant-design-blazor.js"></script> <!-- introduced here automatically -->
+    <script antblazor-js></script>
 </body>
 
 </html>

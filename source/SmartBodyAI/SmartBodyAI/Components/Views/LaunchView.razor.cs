@@ -7,6 +7,8 @@ namespace SmartBodyAI.Components.Views;
 
 public partial class LaunchView
 {
+    [Parameter]
+    public bool ShowMode { get; set; }
     //[Parameter]
     public string? Iss { get; set; }
     //[Parameter]

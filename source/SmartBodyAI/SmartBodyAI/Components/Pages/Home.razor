@@ -1,7 +1,26 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>成大醫院 身體組成 AI 分析</PageTitle>
 
-<h1>Hello, world!</h1>
+@layout EmptyLayout
 
-Welcome to your new app.
+<div style="
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background-image: url('/images/splash.png');
+    background-size: 100% 100%;   /* 水平 100%，垂直 100%，會依視窗強制拉伸 */
+    background-position: center;
+    background-repeat: no-repeat;">
+
+    <div style="
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 2rem;">
+        <LaunchView ShowMode="false" />
+    </div>
+</div>

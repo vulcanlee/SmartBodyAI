@@ -12,6 +12,19 @@ public class PatientInformationModel
     public string WeightValue { get; set; }
     public string WeightUnit { get; set; }
 
+    public void Reset()
+    {
+        Id = string.Empty;
+        Identifier = string.Empty;
+        Name = string.Empty;
+        BirthDate = string.Empty;
+        Gender = string.Empty;
+        HeightValue = string.Empty;
+        HeightUnit = string.Empty;
+        WeightValue = string.Empty;
+        WeightUnit = string.Empty;
+    }
+
     public string GetAge()
     {
         if (DateTime.TryParse(BirthDate, out var birthDate))

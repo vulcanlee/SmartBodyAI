@@ -2,6 +2,7 @@ using SmartBodyAI.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
+using Syncfusion.Blazor;
 
 namespace SmartBodyAI
 {
@@ -14,6 +15,10 @@ namespace SmartBodyAI
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+
+            builder.Services.AddAntDesign();
+            builder.Services.AddSyncfusionBlazor();
 
             #region 加入設定強型別注入宣告
             builder.Services.Configure<SettingModel>(builder.Configuration
@@ -28,6 +33,8 @@ namespace SmartBodyAI
             #endregion
 
             var app = builder.Build();
+
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("NDE5MzI3MEAzMjM2MmUzMDJlMzBkZHZWVnBlRUJiTUZ4TzJwcUZ5T1hjT2g0alNtU1JlSVYwcG1XbkZ1ZWhjPQ==");
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

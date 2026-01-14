@@ -27,7 +27,8 @@ public partial class PatientInformationView
     PatientInformationModel patientInformation = new PatientInformationModel();
 
     public string ProcessingMessage { get; set; }
-    bool isPatientLoading = false;
+    public string patientMrm { get; set; }
+    bool isAccessTokenReady = false;
 
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
@@ -39,27 +40,59 @@ public partial class PatientInformationView
                 await UpdateMessage("發現錯誤：Code 與 State 參數發現問題，無法繼續往下執行 !");
                 StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
-                NavigationManager.NavigateTo("/Launch");
+                NavigationManager.NavigateTo("/");
                 return;
             }
+            return;
             await UpdateMessage("更新取得的授權碼與狀態碼...");
             await SetAuthCodeAsync();
             await UpdateMessage("透過授權碼，取得 Access Token...");
             smartResponse = await GetAccessTokenAsync();
-            await UpdateMessage($"已經取得 Access Token : {smartResponse.AccessToken}");
-            await UpdateMessage($"取得病患的基本資訊...");
-            var found = await GetPatientAsync(smartResponse);
-            if (!found)
+            if (string.IsNullOrEmpty(smartResponse.AccessToken))
             {
+                await UpdateMessage("取得 Access Token 失敗，無法繼續往下執行 !");
+                StateHasChanged();
+                await System.Threading.Tasks.Task.Delay(2000);
+                NavigationManager.NavigateTo("/");
                 return;
             }
-            isPatientLoading = true;
-            await UpdateMessage($"取得此病患的身高與體重...");
-            await GetHeightAndWeightAsync(smartResponse);
-            await UpdateMessage($"OK...");
+            isAccessTokenReady = true;
+            await UpdateMessage($"已經取得 Access Token : {smartResponse.AccessToken}");
             //await GetLastYearOrdersAsync(smartResponse);
             StateHasChanged();
         }
+    }
+
+    async System.Threading.Tasks.Task OnChoicePatientNAsync(string n)
+    {
+        if (n == "1")
+            patientId = "dc9335d0-bbdd-4120-8ae9-baa6604343b6";
+        else if (n == "2")
+            patientId = "3c7d3369-55b5-420b-83d3-c5dda319b9c9";
+        else if (n == "3")
+            patientId = "68cd1181-6359-4047-a77f-a165d7912480";
+        else if (n == "4")
+            patientId = "29d755a6-32fa-482e-8fdd-081300209df8";
+        else if (n == "5")
+            patientId = "fd9a5c15-8c54-4dad-9b69-9e0e5e904548";
+
+        patientMrm = patientId;
+    }
+
+    async System.Threading.Tasks.Task OnQueryPatientAsync()
+    {
+        patientInformation.Reset();
+        StateHasChanged();
+        await UpdateMessage($"取得病患的基本資訊...");
+        var found = await GetPatientAsync(smartResponse);
+        if (!found)
+        {
+            return;
+        }
+        await UpdateMessage($"取得此病患的身高與體重...");
+        await GetHeightAndWeightAsync(smartResponse);
+        await UpdateMessage($"OK...");
+
     }
 
     /// <summary>
@@ -71,6 +104,11 @@ public partial class PatientInformationView
         await System.Threading.Tasks.Task.Yield();
         var SmartAppSettingModelItem = await OAuthStateStoreService.LoadAsync<SmartAppSettingModel>(State);
 
+        if (SmartAppSettingModelItem == null)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         SmartAppSettingModelItem.AuthCode = Code;
         SmartAppSettingModelItem.State = State;
 
@@ -83,6 +121,7 @@ public partial class PatientInformationView
     /// </summary>
     public async System.Threading.Tasks.Task<SmartResponse> GetAccessTokenAsync()
     {
+        SmartResponse smartResponse = new();
         Dictionary<string, string> requestValues = new Dictionary<string, string>()
             {
                 { "grant_type", "authorization_code" },
@@ -104,8 +143,8 @@ public partial class PatientInformationView
 
         if (!response.IsSuccessStatusCode)
         {
-            System.Console.WriteLine($"Failed to exchange code for token!");
-            throw new Exception($"Unauthorized: {response.StatusCode}");
+            smartResponse = new();
+            return smartResponse;
         }
 
         string json = await response.Content.ReadAsStringAsync();
@@ -114,7 +153,7 @@ public partial class PatientInformationView
         System.Console.WriteLine(json);
         System.Console.WriteLine($"----- Authorization Response -----");
 
-        SmartResponse smartResponse = JsonSerializer.Deserialize<SmartResponse>(json);
+        smartResponse = JsonSerializer.Deserialize<SmartResponse>(json);
         return smartResponse;
     }
 
@@ -137,10 +176,10 @@ public partial class PatientInformationView
 
         FhirClient fhirClient = new FhirClient(SmartAppSettingService.Data.FhirServerUrl, httpClient, settings);
 
-        patientId = "dc9335d0-bbdd-4120-8ae9-baa6604343b6";
+
         // 依 MRN (identifier) 查病人
         var bundle = await fhirClient.SearchAsync<Patient>(
-            new[] { "identifier=http://hospital.smarthealthit.org|dc9335d0-bbdd-4120-8ae9-baa6604343b6" }
+            new[] { $"identifier=http://hospital.smarthealthit.org|{patientMrm}" }
         );
 
         // 取第一筆病人
@@ -156,6 +195,7 @@ public partial class PatientInformationView
         }
         else
         {
+            smartResponse.PatientId = patient.Id;
             patientInformation.Id = patient.Id;
             patientInformation.Identifier = patientId;
             patientInformation.Name = patient.Name[0].ToString();

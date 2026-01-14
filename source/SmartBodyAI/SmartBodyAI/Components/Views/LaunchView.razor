@@ -1,4 +1,13 @@
-﻿<h3>取得 OAuth2 授權</h3>
+﻿<div>
+    @if (ShowMode == true)
+    {
+        <h3>取得 OAuth2 授權</h3>
 
-<div>處理狀態訊息</div>
-<div class="alert alert-info m-2 text-break">@ProcessingMessage</div>
+        <div>處理狀態訊息</div>
+        <div class="alert alert-info m-2 text-break">@ProcessingMessage</div>
+    }
+    else
+    {
+        <div class="m-4">@ProcessingMessage</div>
+    }
+</div>

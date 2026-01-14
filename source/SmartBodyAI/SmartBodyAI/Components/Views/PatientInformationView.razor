@@ -1,8 +1,36 @@
 ﻿<div>處理狀態訊息</div>
-<div class="alert alert-info m-2 text-break">@ProcessingMessage</div>
+<div class="alert alert-info m-2 text-break w-100 d-block" style="min-height: 3rem;">@ProcessingMessage</div>
 
-@if (isPatientLoading)
+@if (isAccessTokenReady)
 {
+    <div class="d-flex gap-2 align-items-center">
+        <SfTextBox @bind-Value="@patientMrm" CssClass="flex-grow-1" />
+        <Button Type="@AntDesign.ButtonType.Primary"
+                OnClick="@(async () =>await OnQueryPatientAsync())">
+            查詢
+        </Button>
+        <Button Type="@AntDesign.ButtonType.Default"
+                OnClick="@(async () =>await OnChoicePatientNAsync("1"))">
+            1
+        </Button>
+        <Button Type="@AntDesign.ButtonType.Default"
+                OnClick="@(async () =>await OnChoicePatientNAsync("2"))">
+            2
+        </Button>
+        <Button Type="@AntDesign.ButtonType.Default"
+                OnClick="@(async () =>await OnChoicePatientNAsync("3"))">
+            3
+        </Button>
+        <Button Type="@AntDesign.ButtonType.Default"
+                OnClick="@(async () =>await OnChoicePatientNAsync("4"))">
+            4
+        </Button>
+        <Button Type="@AntDesign.ButtonType.Default"
+                OnClick="@(async () =>await OnChoicePatientNAsync("5"))">
+            5
+        </Button>
+    </div>
+
     <div class="">
         <div>病患唯一識別碼</div>
         <div class="m-2 text-danger h3">@patientInformation.Id</div>
