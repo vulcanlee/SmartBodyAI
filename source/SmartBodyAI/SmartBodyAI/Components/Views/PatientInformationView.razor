@@ -1,0 +1,26 @@
+﻿<div>處理狀態訊息</div>
+<div class="alert alert-info m-2 text-break">@ProcessingMessage</div>
+
+@if (isPatientLoading)
+{
+    <div class="">
+        <div>病患唯一識別碼</div>
+        <div class="m-2 text-danger h3">@patientInformation.Id</div>
+        <div>THAS / Synthea FHIR Server 病人識別碼，醫院的 MRN。</div>
+        <div class="m-2 text-danger h3">@patientInformation.Identifier</div>
+        <div>姓名</div>
+        <div class="m-2 text-danger h3">@patientInformation.Name</div>
+        <div>年紀</div>
+        <div class="m-2 text-danger h3">@patientInformation.GetAge()</div>
+        <div>性別</div>
+        <div class="m-2 text-danger h3">@patientInformation.Gender</div>
+        <div>身高</div>
+        <div class="m-2 text-danger h3">@patientInformation.GetHeight()</div>
+        <div>體重</div>
+        <div class="m-2 text-danger h3">@patientInformation.GetWeight()</div>
+    </div>
+}
+
+@code {
+
+}

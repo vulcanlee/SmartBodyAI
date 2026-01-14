@@ -1,9 +1,9 @@
-﻿@page "/launch"
-@layout EmptyLayout
+﻿using Microsoft.AspNetCore.Components;
 
-<LaunchView/>
+namespace SmartBodyAI.Components.Pages;
 
-@code {
+public partial class PatientInformationPage
+{
     [SupplyParameterFromQuery(Name = "code")]
     public string? Code { get; set; }
     [SupplyParameterFromQuery(Name = "state")]

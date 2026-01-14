@@ -27,7 +27,6 @@ public partial class LaunchView
         {
             try
             {
-
                 await UpdateMessage("系統初始化中...");
                 KeepLaunchIss();
                 await UpdateMessage("從 FHIR 伺服器取得 Metadata 資訊...");
