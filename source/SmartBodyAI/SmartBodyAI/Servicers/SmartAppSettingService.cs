@@ -1,0 +1,37 @@
+﻿using SmartBodyAI.Models;
+
+namespace SmartBodyAI.Servicers;
+
+public class SmartAppSettingService
+{
+    private readonly SettingService settingService;
+    public SmartAppSettingModel Data = new SmartAppSettingModel();
+
+    public SmartAppSettingService(SettingService settingService)
+    {
+        this.settingService = settingService;
+
+        var data = settingService.GetValue();
+        Data.FhirServerUrl = data.FhirServerUrl;
+        Data.RedirectUrl = data.RedirectUrl;
+        Data.ClientId = data.ClientId;
+        Data.ProcessDelayTimeInMilliSeconds = data.ProcessDelayTimeInMilliSeconds;
+        Data.AuthorizationScope = data.AuthorizationScope;
+    }
+
+    public void UpdateSetting(SmartAppSettingModel model)
+    {
+        Data.AuthorizationScope = model.AuthorizationScope;
+        Data.ProcessDelayTimeInMilliSeconds = model.ProcessDelayTimeInMilliSeconds;
+        Data.FhirServerUrl = model.FhirServerUrl;
+        Data.ClientId = model.ClientId;
+        Data.RedirectUrl = model.RedirectUrl;
+        Data.AuthCode = model.AuthCode;
+        Data.ClientState = model.ClientState;
+        Data.TokenUrl = model.TokenUrl;
+        Data.AuthorizeUrl = model.AuthorizeUrl;
+        Data.Iss = model.Iss;
+        Data.Launch = model.Launch;
+        Data.State = model.State;
+    }
+}
