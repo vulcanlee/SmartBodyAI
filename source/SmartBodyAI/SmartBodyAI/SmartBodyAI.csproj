@@ -9,6 +9,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="AntDesign" Version="1.5.1" />
+		<PackageReference Include="fo-dicom.Codecs" Version="5.16.5.1" />
+		<PackageReference Include="fo-dicom.Imaging.ImageSharp" Version="5.2.5" />
 		<PackageReference Include="Hl7.Fhir.R4" Version="6.0.1" />
 		<PackageReference Include="Syncfusion.Blazor" Version="26.2.13" />
 		<PackageReference Include="Syncfusion.Blazor.Themes" Version="26.2.13" />

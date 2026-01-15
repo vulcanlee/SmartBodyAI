@@ -1,3 +1,4 @@
+using Microsoft.Extensions.FileProviders;
 using SmartBodyAI.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
@@ -47,6 +48,26 @@ namespace SmartBodyAI
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
             app.UseHttpsRedirection();
 
+            #region 靜態檔案路徑綁定
+            var settingModel = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SettingModel>>().Value;
+            MagicObjectHelper.DicomImagePath = settingModel.DicomImagePath;
+            MagicObjectHelper.UploadDicomPath = settingModel.UploadDicomPath;
+            if(Directory.Exists(MagicObjectHelper.UploadDicomPath) == false)
+            {
+                Directory.CreateDirectory(MagicObjectHelper.UploadDicomPath);
+            }
+            if(Directory.Exists(MagicObjectHelper.DicomImagePath) == false)
+            {
+                Directory.CreateDirectory(MagicObjectHelper.DicomImagePath);
+            }
+            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(MagicObjectHelper.DicomImagePath),
+                RequestPath = MagicObjectHelper.DicomWebPath
+            });
+
+            #endregion
             app.UseAntiforgery();
 
             app.MapStaticAssets();

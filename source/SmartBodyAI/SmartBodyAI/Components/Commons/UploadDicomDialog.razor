@@ -1,0 +1,32 @@
+﻿@inject NavigationManager NavigationManager
+@inject DicomService DicomService
+
+<SfDialog @bind-Visible="@OpenPicker" IsModal="true"
+          Width="60%" Height="40%">
+    <DialogTemplates>
+        <Header>@DialogTitle</Header>
+        <Content>
+
+            <div class="visit-code-dialog">
+                <div class="upload-files-control">
+                    <SfUploader @ref="upload1" AutoUpload="true" AllowMultiple="false"
+                                MaxFileSize="100971520"
+                                ShowProgressBar="true">
+                        <UploaderEvents ValueChange="UploaderChange" 
+                                         ></UploaderEvents>
+                    </SfUploader>
+                </div>
+            </div>
+
+        </Content>
+        <FooterTemplate>
+            <SfButton @onclick="@OnPickerCancel" CssClass='e-secondary'>取消</SfButton>
+        </FooterTemplate>
+    </DialogTemplates>
+    <DialogPositionData X="center" Y="center"></DialogPositionData>
+</SfDialog>
+
+<DialogBackground />
+
+@code {
+}

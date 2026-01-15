@@ -7,4 +7,6 @@ public class SettingModel
     public string ClientId { get; set; }
     public string AuthorizationScope { get; set; }
     public int ProcessDelayTimeInMilliSeconds { get; set; }
+    public string UploadDicomPath { get; set; }
+    public string DicomImagePath { get; set; }
 }
