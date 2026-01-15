@@ -43,7 +43,7 @@ public partial class PatientInformationView
                 NavigationManager.NavigateTo("/");
                 return;
             }
-            return;
+
             await UpdateMessage("更新取得的授權碼與狀態碼...");
             await SetAuthCodeAsync();
             await UpdateMessage("透過授權碼，取得 Access Token...");
