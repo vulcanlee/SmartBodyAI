@@ -1,57 +1,76 @@
-﻿<div class="m-auto">
-    <div>處理狀態訊息</div>
+﻿<div>
+    <div class="m-auto">
+        <div>處理狀態訊息</div>
 
-    <div class="alert alert-info m-2 text-break " style="min-height: 3rem;">@ProcessingMessage</div>
+        <div class="alert alert-info m-2 text-break " style="min-height: 3rem;">@ProcessingMessage</div>
+    </div>
+
+    <div>
+    @if (isAccessTokenReady)
+    {
+        <div class="d-flex gap-2 align-items-center">
+            <SfTextBox @bind-Value="@patientMrm" CssClass="flex-grow-1" />
+            <Button Type="@AntDesign.ButtonType.Primary"
+                    OnClick="@(async () =>await OnQueryPatientAsync())">
+                查詢
+            </Button>
+            <Button Type="@AntDesign.ButtonType.Default"
+                    OnClick="@(async () =>await OnChoicePatientNAsync("1"))">
+                1
+            </Button>
+            <Button Type="@AntDesign.ButtonType.Default"
+                    OnClick="@(async () =>await OnChoicePatientNAsync("2"))">
+                2
+            </Button>
+            <Button Type="@AntDesign.ButtonType.Default"
+                    OnClick="@(async () =>await OnChoicePatientNAsync("3"))">
+                3
+            </Button>
+            <Button Type="@AntDesign.ButtonType.Default"
+                    OnClick="@(async () =>await OnChoicePatientNAsync("4"))">
+                4
+            </Button>
+            <Button Type="@AntDesign.ButtonType.Default"
+                    OnClick="@(async () =>await OnChoicePatientNAsync("5"))">
+                5
+            </Button>
+        </div>
+
+        <div class="">
+            <div>病患唯一識別碼</div>
+            <div class="m-2 text-danger h3">@patientInformation.Id</div>
+            <div>THAS / Synthea FHIR Server 病人識別碼，醫院的 MRN。</div>
+            <div class="m-2 text-danger h3">@patientInformation.Identifier</div>
+            <div>姓名</div>
+            <div class="m-2 text-danger h3">@patientInformation.Name</div>
+            <div>年紀</div>
+            <div class="m-2 text-danger h3">@patientInformation.GetAge()</div>
+            <div>性別</div>
+            <div class="m-2 text-danger h3">@patientInformation.Gender</div>
+            <div>身高</div>
+            <div class="m-2 text-danger h3">@patientInformation.GetHeight()</div>
+            <div>體重</div>
+            <div class="m-2 text-danger h3">@patientInformation.GetWeight()</div>
+        </div>
+    }
+
+    </div>
+
+    <div>
+        <Button Type="@AntDesign.ButtonType.Primary"
+                OnClick="@(async () =>await OnShowUploadDicomDialogAsync())"
+                Disabled="@(!isAccessTokenReady || string.IsNullOrEmpty(SubjectNo))">
+            上傳 DICOM 檔案
+        </Button>
+        <div class="header green-header">
+            CT Image
+        </div>
+        <div class="empty-image-area" style="display:flex; justify-content:center">
+            <img src="@($"{image}?v={imageVersion}")" class="responsive-image" />
+        </div>
+    </div>
 </div>
 
-@if (isAccessTokenReady)
-{
-    <div class="d-flex gap-2 align-items-center">
-        <SfTextBox @bind-Value="@patientMrm" CssClass="flex-grow-1" />
-        <Button Type="@AntDesign.ButtonType.Primary"
-                OnClick="@(async () =>await OnQueryPatientAsync())">
-            查詢
-        </Button>
-        <Button Type="@AntDesign.ButtonType.Default"
-                OnClick="@(async () =>await OnChoicePatientNAsync("1"))">
-            1
-        </Button>
-        <Button Type="@AntDesign.ButtonType.Default"
-                OnClick="@(async () =>await OnChoicePatientNAsync("2"))">
-            2
-        </Button>
-        <Button Type="@AntDesign.ButtonType.Default"
-                OnClick="@(async () =>await OnChoicePatientNAsync("3"))">
-            3
-        </Button>
-        <Button Type="@AntDesign.ButtonType.Default"
-                OnClick="@(async () =>await OnChoicePatientNAsync("4"))">
-            4
-        </Button>
-        <Button Type="@AntDesign.ButtonType.Default"
-                OnClick="@(async () =>await OnChoicePatientNAsync("5"))">
-            5
-        </Button>
-    </div>
-
-    <div class="">
-        <div>病患唯一識別碼</div>
-        <div class="m-2 text-danger h3">@patientInformation.Id</div>
-        <div>THAS / Synthea FHIR Server 病人識別碼，醫院的 MRN。</div>
-        <div class="m-2 text-danger h3">@patientInformation.Identifier</div>
-        <div>姓名</div>
-        <div class="m-2 text-danger h3">@patientInformation.Name</div>
-        <div>年紀</div>
-        <div class="m-2 text-danger h3">@patientInformation.GetAge()</div>
-        <div>性別</div>
-        <div class="m-2 text-danger h3">@patientInformation.Gender</div>
-        <div>身高</div>
-        <div class="m-2 text-danger h3">@patientInformation.GetHeight()</div>
-        <div>體重</div>
-        <div class="m-2 text-danger h3">@patientInformation.GetWeight()</div>
-    </div>
-}
-
-@code {
-
-}
+<UploadDicomDialog OpenPicker=ShowUploadDicomDialog
+                   SubjectNo="@SubjectNo"
+                   OnConfirmCallback=OnUploadDicomAsync />

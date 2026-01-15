@@ -1,6 +1,7 @@
 ﻿using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.AspNetCore.Components;
+using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
 using System.Net.Http.Headers;
@@ -29,6 +30,11 @@ public partial class PatientInformationView
     public string ProcessingMessage { get; set; }
     public string patientMrm { get; set; }
     bool isAccessTokenReady = false;
+
+    bool ShowUploadDicomDialog = false;
+    string SubjectNo = "";
+    string image = "";
+    string imageVersion = DateTime.Now.Ticks.ToString();
 
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
@@ -83,12 +89,16 @@ public partial class PatientInformationView
     {
         patientInformation.Reset();
         StateHasChanged();
+
         await UpdateMessage($"取得病患的基本資訊...");
+        patientId = patientMrm;
         var found = await GetPatientAsync(smartResponse);
         if (!found)
         {
             return;
         }
+        SubjectNo = patientInformation.Id;
+
         await UpdateMessage($"取得此病患的身高與體重...");
         await GetHeightAndWeightAsync(smartResponse);
         await UpdateMessage($"OK...");
@@ -541,5 +551,23 @@ public partial class PatientInformationView
         ProcessingMessage = message;
         await System.Threading.Tasks.Task.Delay(1000);
         StateHasChanged();
+    }
+
+    async System.Threading.Tasks.Task OnUploadDicomAsync(string filename)
+    {
+        if (filename != null)
+        {
+            imageVersion = DateTime.Now.Ticks.ToString();
+            string imageFilename = Path.GetFileName(filename.Replace(".dicm", ".png"));
+            image = Path.Combine(MagicObjectHelper.DicomWebPath, imageFilename);
+        }
+        ShowUploadDicomDialog = false;
+        StateHasChanged();
+    }
+
+    async System.Threading.Tasks.Task OnShowUploadDicomDialogAsync()
+    {
+        ShowUploadDicomDialog = true;
+        await System.Threading.Tasks.Task.Yield();
     }
 }

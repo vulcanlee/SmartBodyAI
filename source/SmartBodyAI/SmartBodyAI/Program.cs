@@ -27,10 +27,11 @@ namespace SmartBodyAI
             #endregion
 
             #region 客製化註冊服務
-            builder.Services.AddDistributedMemoryCache(); // 加入這行
+            builder.Services.AddDistributedMemoryCache();
             builder.Services.AddScoped<SettingService>();
             builder.Services.AddScoped<SmartAppSettingService>();
             builder.Services.AddScoped<OAuthStateStoreService>();
+            builder.Services.AddScoped<DicomService>(); 
             #endregion
 
             var app = builder.Build();
