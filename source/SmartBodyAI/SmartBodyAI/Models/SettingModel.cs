@@ -8,5 +8,6 @@ public class SettingModel
     public string AuthorizationScope { get; set; }
     public int ProcessDelayTimeInMilliSeconds { get; set; }
     public string UploadDicomPath { get; set; }
+    public string UploadDicomTempPath { get; set; }
     public string DicomImagePath { get; set; }
 }
