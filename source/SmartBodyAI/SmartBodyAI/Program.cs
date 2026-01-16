@@ -51,6 +51,7 @@ namespace SmartBodyAI
 
             #region 靜態檔案路徑綁定
             var settingModel = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SettingModel>>().Value;
+            MagicObjectHelper.UploadDicomTempPath = settingModel.UploadDicomTempPath;
             MagicObjectHelper.DicomImagePath = settingModel.DicomImagePath;
             MagicObjectHelper.UploadDicomPath = settingModel.UploadDicomPath;
             if(Directory.Exists(MagicObjectHelper.UploadDicomPath) == false)
@@ -60,6 +61,10 @@ namespace SmartBodyAI
             if(Directory.Exists(MagicObjectHelper.DicomImagePath) == false)
             {
                 Directory.CreateDirectory(MagicObjectHelper.DicomImagePath);
+            }
+            if(Directory.Exists(MagicObjectHelper.UploadDicomTempPath) == false)
+            {
+                Directory.CreateDirectory(MagicObjectHelper.UploadDicomTempPath);
             }
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions
