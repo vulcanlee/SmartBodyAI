@@ -1,5 +1,7 @@
-﻿using Hl7.Fhir.Model;
+﻿using AntDesign;
+using Hl7.Fhir.Model;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
 
@@ -14,6 +16,8 @@ public partial class LaunchView
     //[Parameter]
     public string? LaunchCode { get; set; }
 
+    [Inject]
+    public INotificationService Notice { get; init; }
     [Inject]
     public NavigationManager NavigationManager { get; init; }
     [Inject]
@@ -58,9 +62,18 @@ public partial class LaunchView
 
     async System.Threading.Tasks.Task UpdateMessage(string message)
     {
-        ProcessingMessage = message;
+        //ProcessingMessage = message;
+        //await System.Threading.Tasks.Task.Delay(1000);
+        //StateHasChanged();
+
+        var task = Notice.Open(new NotificationConfig()
+        {
+            Message = "取得 OAuth2 授權碼",
+            Key = Guid.NewGuid().ToString(),
+            Description = $"{message}",
+            NotificationType = NotificationType.Warning,
+        });
         await System.Threading.Tasks.Task.Delay(1000);
-        StateHasChanged();
     }
 
     /// <summary>
