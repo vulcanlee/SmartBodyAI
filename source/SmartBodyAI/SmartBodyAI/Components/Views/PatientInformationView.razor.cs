@@ -571,6 +571,12 @@ public partial class PatientInformationView
         await System.Threading.Tasks.Task.Yield();
     }
 
+    async System.Threading.Tasks.Task OnPatientSendAsync()
+    {
+        patientId = patientMrm;
+        await OnQueryPatientAsync();    
+    }
+
     void OnViewResult()
     {
         NavigationManager.NavigateTo($"/AIResult");
