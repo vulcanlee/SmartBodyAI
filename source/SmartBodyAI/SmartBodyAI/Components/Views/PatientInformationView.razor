@@ -33,19 +33,19 @@
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Left Section - ID Input -->
-        <div>
-            <h2 class="id-input-title">身分證字號:</h2>
-            <input type="text"
-                   placeholder="請輸入身分證字號"
-                   class="id-input-field">
-            <div class="btn-container">
-                <button class="btn-confirm" @onclick="@(async () => { await OnChoicePatientNAsync("");})">
-                    確認
-                </button>
-            </div>
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Left Section - ID Input -->
+    <div>
+        <h2 class="id-input-title">病歷號：</h2>
+        <input type="text" @bind="patientMrm"
+               placeholder="請輸入病歷號"
+               class="id-input-field">
+        <div class="btn-container">
+            <button class="btn-confirm" @onclick="@(async () => { await OnPatientSendAsync();})">
+                確認
+            </button>
+        </div>
 
             <!-- Info Box -->
             <div class="info-box">
@@ -57,56 +57,46 @@
             </div>
         </div>
 
-        <div>
-            <div class="patient-card">
-                <div class="patient-header">
-                    <span class="patient-name">王小美</span>
-                    <span class="patient-age">24歲</span>
-                </div>
-                <div class="patient-body">
-                    <div class="patient-details">
-                        <p><span>性別:</span><span>女</span></p>
-                        <p><span>身高:</span><span>165</span></p>
-                        <p><span>體重:</span><span>52</span></p>
-                    </div>
+    <div>
+        <div class="patient-card">
+            <div class="patient-header">
+                <span class="patient-name">@patientInformation.Name</span>
+                <span class="patient-age">@patientInformation.GetAge()</span>
+            </div>
+            <div class="patient-body">
+                <div class="patient-details">
+                    <p><span>性別：</span><span>@patientInformation.Gender</span></p>
+                    <p><span>身高：</span><span>@patientInformation.GetHeight()</span></p>
+                    <p><span>體重：</span><span>@patientInformation.GetWeight()</span></p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Right Section - DICOM Viewer -->
-        <div>
-            <div class="dicom-card">
-                <div class="dicom-header">
-                    <h3 class="dicom-title">DICOM</h3>
+    <!-- Right Section - DICOM Viewer -->
+    <div>
+        <div class="dicom-card">
+            <div class="dicom-header">
+                <h3 class="dicom-title">DICOM</h3>
+            </div>
+            <div class="dicom-body">
+                <div class="dicom-viewer">
+                    <img src="@($"{image}?v={imageVersion}")"
+                         alt="DICOM CT Scan">
                 </div>
-                <div class="dicom-body">
-                    <div class="dicom-viewer">
-                        @if (!string.IsNullOrEmpty(image))
-                        {
-                            <img src="@($"{image}?v={imageVersion}")" alt="DICOM CT Scan">
-                        }
-                        else
-                        {
-                            <div class="dicom-placeholder">
-                                <div class="placeholder-icon">📋</div>
-                                <div class="placeholder-text">DICOM 預覽</div>
-                                <div class="placeholder-subtitle">尚未上傳影像</div>
-                            </div>
-                        }
-                    </div>
-                    <div class="dicom-buttons">
-                        <button class="btn-select-dicom" @onclick="@(async () => await OnShowUploadDicomDialogAsync())">
-                            <span>⬆️</span>
-                            <span>選擇DICOM影像</span>
-                        </button>
-                        <button class="btn-ai-inference">
-                            AI推論
-                        </button>
-                    </div>
+                <div class="dicom-buttons">
+                    <button class="btn-select-dicom" @onclick="@(async () => await OnShowUploadDicomDialogAsync())">
+                        <span>⬆️</span>
+                        <span>選擇DICOM影像</span>
+                    </button>
+                    <button class="btn-ai-inference">
+                        AI推論
+                    </button>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
     <!-- Footer -->
     <footer class="page-footer">

@@ -1,4 +1,5 @@
-﻿using Hl7.Fhir.Model;
+﻿using AntDesign;
+using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.AspNetCore.Components;
 using SmartBodyAI.Helpers;
@@ -21,6 +22,8 @@ public partial class PatientInformationView
     public OAuthStateStoreService OAuthStateStoreService { get; init; }
     [Inject]
     public NavigationManager NavigationManager { get; init; }
+    [Inject]
+    public INotificationService Notice { get; init; }
 
     Patient patient = new();
     SmartResponse smartResponse = new();
@@ -131,6 +134,11 @@ public partial class PatientInformationView
     /// </summary>
     public async System.Threading.Tasks.Task<SmartResponse> GetAccessTokenAsync()
     {
+        if(string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+        {
+            return new SmartResponse();
+        }
+
         SmartResponse smartResponse = new();
         Dictionary<string, string> requestValues = new Dictionary<string, string>()
             {
@@ -548,9 +556,18 @@ public partial class PatientInformationView
 
     async System.Threading.Tasks.Task UpdateMessage(string message)
     {
-        ProcessingMessage = message;
-        await System.Threading.Tasks.Task.Delay(1000);
-        StateHasChanged();
+        //ProcessingMessage = message;
+        //await System.Threading.Tasks.Task.Delay(1000);
+        //StateHasChanged();
+
+        var task = Notice.Open(new NotificationConfig()
+        {
+            Message = "存取 FHIR 資源",
+            Key = Guid.NewGuid().ToString(),
+            Description = $"{message}",
+            NotificationType = NotificationType.Warning,
+        });
+
     }
 
     async System.Threading.Tasks.Task OnUploadDicomAsync(string filename)
@@ -569,6 +586,12 @@ public partial class PatientInformationView
     {
         ShowUploadDicomDialog = true;
         await System.Threading.Tasks.Task.Yield();
+    }
+
+    async System.Threading.Tasks.Task OnPatientSendAsync()
+    {
+        patientId = patientMrm;
+        await OnQueryPatientAsync();    
     }
 
     void OnViewResult()

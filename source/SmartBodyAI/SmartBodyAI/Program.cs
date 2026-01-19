@@ -31,7 +31,8 @@ namespace SmartBodyAI
             builder.Services.AddScoped<SettingService>();
             builder.Services.AddScoped<SmartAppSettingService>();
             builder.Services.AddScoped<OAuthStateStoreService>();
-            builder.Services.AddScoped<DicomService>(); 
+            builder.Services.AddScoped<DicomService>();
+            builder.Services.AddAntDesign();
             #endregion
 
             var app = builder.Build();
