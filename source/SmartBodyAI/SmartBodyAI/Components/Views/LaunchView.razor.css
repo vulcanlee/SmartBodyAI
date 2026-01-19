@@ -13,7 +13,7 @@ body {
     align-items: center;
     background: linear-gradient(135deg, #fdf6f0 0%, #f5e6e0 50%, #e8f5e8 100%);
     position: relative;
-    overflow: hidden;
+    overflow-y: hidden;
 }
 
 /* 背景浮水印 */
@@ -85,7 +85,7 @@ body {
 /* 公司 Logo */
 .company-section {
     position: absolute;
-    bottom: 40px;
+    bottom: 90px;
     right: 60px;
     z-index: 1;
 }
