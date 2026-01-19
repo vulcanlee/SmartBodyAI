@@ -6,7 +6,10 @@
 
 html, body {
     height: 100%;
+    width: 100%;
     overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -14,6 +17,14 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #DFECFF;
+}
+
+/* 主容器 - 佔滿整個視窗 */
+.patient-view-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* Main Content */
@@ -33,7 +44,6 @@ body {
         min-height: 0;
         overflow-y: auto;
     }
-
 /* Header */
 header {
     flex-shrink: 0;
@@ -196,7 +206,7 @@ header {
 
 .patient-header {
     background-color: #fef3c7;
-    padding: 1.5rem 2rem;
+    padding: 1rem 2rem;
     display: flex;
     align-items: baseline;
     gap: 1rem;
@@ -247,7 +257,7 @@ header {
 
 .dicom-header {
     background-color: #fef3c7;
-    padding: 1.5rem;
+    padding: 1rem;
 }
 
 .dicom-title {
@@ -260,6 +270,7 @@ header {
 
 .dicom-body {
     padding: 1.5rem;
+    padding-bottom: 2.5rem;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -272,10 +283,12 @@ header {
     overflow: hidden;
     margin-bottom: 1.5rem;
     flex: 1;
-    min-height: 0;
+    min-height: 400px;
+    max-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
     .dicom-viewer img {
@@ -284,10 +297,39 @@ header {
         object-fit: contain;
     }
 
+/* DICOM 佔位符 */
+.dicom-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    opacity: 0.5;
+}
+
+.placeholder-text {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+}
+
+.placeholder-subtitle {
+    font-size: 1.125rem;
+    color: #6b7280;
+    opacity: 0.7;
+}
+
 .dicom-buttons {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
+    padding-bottom: 1.5rem;
 }
 
 .btn-select-dicom {
@@ -413,3 +455,234 @@ header {
     .btn-zoom:hover {
         background-color: #14b8a6;
     }
+
+/* 響應式設計 - 小螢幕適配 */
+
+/* 平板尺寸 (寬度 <= 1200px) */
+@media (max-width: 1200px) {
+    .main-content {
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .header-title {
+        font-size: 2rem;
+    }
+
+    .progress-container {
+        padding: 0.5rem 1rem;
+        gap: 1rem;
+    }
+
+    .progress-step-text {
+        font-size: 1rem;
+    }
+
+    .id-input-title,
+    .patient-name,
+    .dicom-title {
+        font-size: 2rem;
+    }
+
+    .patient-details {
+        font-size: 1.25rem;
+    }
+
+    .info-box {
+        margin-top: 2rem;
+    }
+}
+
+/* 小螢幕尺寸 (寬度 <= 992px) - 改為雙欄佈局 */
+@media (max-width: 992px) {
+    .main-content {
+        flex-wrap: wrap;
+    }
+
+    .main-content > div:first-child {
+        flex: 1 1 100%;
+        margin-bottom: 1rem;
+    }
+
+    .main-content > div:nth-child(2),
+    .main-content > div:nth-child(3) {
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .header-title {
+        font-size: 1.75rem;
+    }
+
+    .progress-container {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .progress-step {
+        padding: 0.4rem 1rem;
+    }
+
+    .progress-arrow {
+        display: none;
+    }
+}
+
+/* 手機尺寸 (寬度 <= 768px) - 改為單欄佈局 */
+@media (max-width: 768px) {
+    .patient-view-container {
+        height: auto;
+        overflow-y: auto;
+    }
+
+    .main-content {
+        flex-direction: column;
+        overflow-y: visible;
+        height: auto;
+    }
+
+    .main-content > div {
+        flex: 1 1 100%;
+        width: 100%;
+        overflow-y: visible;
+    }
+
+    .main-content > div:first-child,
+    .main-content > div:nth-child(2),
+    .main-content > div:nth-child(3) {
+        flex: 1 1 100%;
+    }
+
+    .header-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .header-left {
+        position: relative;
+        left: auto;
+    }
+
+    .header-title {
+        font-size: 1.5rem;
+    }
+
+    .progress-container {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 0.5rem;
+    }
+
+    .progress-step {
+        flex-shrink: 0;
+    }
+
+    .progress-step-text {
+        font-size: 0.875rem;
+    }
+
+    .id-input-title {
+        font-size: 1.5rem;
+    }
+
+    .id-input-field {
+        max-width: 100%;
+    }
+
+    .btn-container {
+        max-width: 100%;
+    }
+
+    .info-box {
+        margin-top: 2rem;
+    }
+
+    .patient-name {
+        font-size: 1.75rem;
+    }
+
+    .patient-age {
+        font-size: 1.25rem;
+    }
+
+    .patient-details {
+        font-size: 1.125rem;
+    }
+
+    .dicom-title {
+        font-size: 1.75rem;
+    }
+
+    .dicom-viewer {
+        min-height: 300px;
+        max-height: 400px;
+    }
+
+    .dicom-buttons {
+        flex-direction: column;
+    }
+
+    .btn-select-dicom,
+    .btn-ai-inference {
+        width: 100%;
+    }
+
+    .page-footer {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .footer-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* 極小螢幕 (寬度 <= 480px) */
+@media (max-width: 480px) {
+    .header-title {
+        font-size: 1.25rem;
+    }
+
+    .header-left img:first-child {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .header-left img:last-child {
+        height: 3rem;
+    }
+
+    .progress-step {
+        padding: 0.3rem 0.75rem;
+    }
+
+    .progress-step-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.875rem;
+    }
+
+    .progress-step-text {
+        font-size: 0.75rem;
+    }
+
+    .id-input-title,
+    .patient-name,
+    .dicom-title {
+        font-size: 1.25rem;
+    }
+
+    .btn-confirm,
+    .btn-result {
+        padding: 0.5rem 2rem;
+        font-size: 1rem;
+    }
+
+    .btn-select-dicom,
+    .btn-ai-inference {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+}

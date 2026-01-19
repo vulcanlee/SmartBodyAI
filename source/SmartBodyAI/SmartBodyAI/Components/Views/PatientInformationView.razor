@@ -1,190 +1,127 @@
-﻿    <!-- Header -->
-<header>
-    <div class="header-container">
-        <div class="header-left">
-            <img src="img/ncku_logo.svg" alt="成大醫院">
-            <img src="img/ncku_header.png" alt="成大醫院">
+﻿<div class="patient-view-container">
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="header-left">
+                <img src="img/ncku_logo.svg" alt="成大醫院">
+                <img src="img/ncku_header.png" alt="成大醫院">
+            </div>
+            <h1 class="header-title">身體組成AI分析</h1>
         </div>
-        <h1 class="header-title">身體組成AI分析</h1>
-    </div>
-</header>
+    </header>
 
-<!-- Progress Steps -->
-<div class="progress-container">
-    <div class="progress-step active">
-        <div class="progress-step-icon">!</div>
-        <span class="progress-step-text">確認基本資料</span>
+    <!-- Progress Steps -->
+    <div class="progress-container">
+        <div class="progress-step active">
+            <div class="progress-step-icon">!</div>
+            <span class="progress-step-text">確認基本資料</span>
+        </div>
+        <span class="progress-arrow">→</span>
+        <div class="progress-step">
+            <div class="progress-step-icon">1</div>
+            <span class="progress-step-text">上傳DICOM</span>
+        </div>
+        <span class="progress-arrow">→</span>
+        <div class="progress-step">
+            <div class="progress-step-icon">2</div>
+            <span class="progress-step-text">進行AI推論</span>
+        </div>
+        <span class="progress-arrow">→</span>
+        <div class="progress-step">
+            <div class="progress-step-icon">3</div>
+            <span class="progress-step-text">查看AI分析</span>
+        </div>
     </div>
-    <span class="progress-arrow">→</span>
-    <div class="progress-step">
-        <div class="progress-step-icon">1</div>
-        <span class="progress-step-text">上傳DICOM</span>
-    </div>
-    <span class="progress-arrow">→</span>
-    <div class="progress-step">
-        <div class="progress-step-icon">2</div>
-        <span class="progress-step-text">進行AI推論</span>
-    </div>
-    <span class="progress-arrow">→</span>
-    <div class="progress-step">
-        <div class="progress-step-icon">3</div>
-        <span class="progress-step-text">查看AI分析</span>
-    </div>
-</div>
 
-<!-- Main Content -->
-<main class="main-content">
-    <!-- Left Section - ID Input -->
-    <div>
-        <h2 class="id-input-title">身分證字號：</h2>
-        <input type="text"
-               placeholder="請輸入身分證字號"
-               class="id-input-field">
-        <div class="btn-container">
-            <button class="btn-confirm" @onclick="@(async () => { await OnChoicePatientNAsync("");})">
-                確認
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Left Section - ID Input -->
+        <div>
+            <h2 class="id-input-title">身分證字號:</h2>
+            <input type="text"
+                   placeholder="請輸入身分證字號"
+                   class="id-input-field">
+            <div class="btn-container">
+                <button class="btn-confirm" @onclick="@(async () => { await OnChoicePatientNAsync("");})">
+                    確認
+                </button>
+            </div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <p class="info-box-title">
+                    <span class="info-box-icon">?</span>
+                    何謂DICOM？
+                </p>
+                <p class="info-box-text">DICOM 是醫療影像的標準格式,可用來分析身體組成</p>
+            </div>
+        </div>
+
+        <div>
+            <div class="patient-card">
+                <div class="patient-header">
+                    <span class="patient-name">王小美</span>
+                    <span class="patient-age">24歲</span>
+                </div>
+                <div class="patient-body">
+                    <div class="patient-details">
+                        <p><span>性別:</span><span>女</span></p>
+                        <p><span>身高:</span><span>165</span></p>
+                        <p><span>體重:</span><span>52</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Section - DICOM Viewer -->
+        <div>
+            <div class="dicom-card">
+                <div class="dicom-header">
+                    <h3 class="dicom-title">DICOM</h3>
+                </div>
+                <div class="dicom-body">
+                    <div class="dicom-viewer">
+                        @if (!string.IsNullOrEmpty(image))
+                        {
+                            <img src="@($"{image}?v={imageVersion}")" alt="DICOM CT Scan">
+                        }
+                        else
+                        {
+                            <div class="dicom-placeholder">
+                                <div class="placeholder-icon">📋</div>
+                                <div class="placeholder-text">DICOM 預覽</div>
+                                <div class="placeholder-subtitle">尚未上傳影像</div>
+                            </div>
+                        }
+                    </div>
+                    <div class="dicom-buttons">
+                        <button class="btn-select-dicom" @onclick="@(async () => await OnShowUploadDicomDialogAsync())">
+                            <span>⬆️</span>
+                            <span>選擇DICOM影像</span>
+                        </button>
+                        <button class="btn-ai-inference">
+                            AI推論
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+        <div class="footer-logo">
+            <img src="img/exentric.png" alt="eXentric">
+        </div>
+        <div class="footer-buttons">
+            <button class="btn-result" @onclick="OnViewResult">
+                <span>🔍</span>
+                <span>查看結果</span>
             </button>
         </div>
-
-        <!-- Info Box -->
-        <div class="info-box">
-            <p class="info-box-title">
-                <span class="info-box-icon">?</span>
-                何謂DICOM？
-            </p>
-            <p class="info-box-text">DICOM 是醫療影像的標準格式，可用來分析身體組成</p>
-        </div>
-    </div>
-
-    <div>
-        <div class="patient-card">
-            <div class="patient-header">
-                <span class="patient-name">王小美</span>
-                <span class="patient-age">24歲</span>
-            </div>
-            <div class="patient-body">
-                <div class="patient-details">
-                    <p><span>性別：</span><span>女</span></p>
-                    <p><span>身高：</span><span>165</span></p>
-                    <p><span>體重：</span><span>52</span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Section - DICOM Viewer -->
-    <div>
-        <div class="dicom-card">
-            <div class="dicom-header">
-                <h3 class="dicom-title">DICOM</h3>
-            </div>
-            <div class="dicom-body">
-                <div class="dicom-viewer">
-                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E7%97%85%E6%82%A3%E6%B8%85%E5%96%AE%20%287%29-iNHGJEXAjOe0BitsaDndZ39kjdiRSD.png"
-                         alt="DICOM CT Scan">
-                </div>
-                <div class="dicom-buttons">
-                    <button class="btn-select-dicom">
-                        <span>⬆️</span>
-                        <span>選擇DICOM影像</span>
-                    </button>
-                    <button class="btn-ai-inference">
-                        AI推論
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-
-<!-- Footer -->
-<footer class="page-footer">
-    <div class="footer-logo">
-        <img src="img/exentric.png" alt="eXentric">
-    </div>
-    <div class="footer-buttons">
-        <button class="btn-result" @onclick="OnViewResult">
-            <span>🔍</span>
-            <span>查看結果</span>
-        </button>
-    </div>
-</footer>
-
-
-
-@* <div>
-    <div class="m-auto">
-        <div>處理狀態訊息</div>
-
-        <div class="alert alert-info m-2 text-break " style="min-height: 3rem;">@ProcessingMessage</div>
-    </div>
-
-    <div>
-    @if (isAccessTokenReady)
-    {
-        <div class="d-flex gap-2 align-items-center">
-            <SfTextBox @bind-Value="@patientMrm" CssClass="flex-grow-1" />
-            <Button Type="@AntDesign.ButtonType.Primary"
-                    OnClick="@(async () =>await OnQueryPatientAsync())">
-                查詢
-            </Button>
-            <Button Type="@AntDesign.ButtonType.Default"
-                    OnClick="@(async () =>await OnChoicePatientNAsync("1"))">
-                1
-            </Button>
-            <Button Type="@AntDesign.ButtonType.Default"
-                    OnClick="@(async () =>await OnChoicePatientNAsync("2"))">
-                2
-            </Button>
-            <Button Type="@AntDesign.ButtonType.Default"
-                    OnClick="@(async () =>await OnChoicePatientNAsync("3"))">
-                3
-            </Button>
-            <Button Type="@AntDesign.ButtonType.Default"
-                    OnClick="@(async () =>await OnChoicePatientNAsync("4"))">
-                4
-            </Button>
-            <Button Type="@AntDesign.ButtonType.Default"
-                    OnClick="@(async () =>await OnChoicePatientNAsync("5"))">
-                5
-            </Button>
-        </div>
-
-        <div class="">
-            <div>病患唯一識別碼</div>
-            <div class="m-2 text-danger h3">@patientInformation.Id</div>
-            <div>THAS / Synthea FHIR Server 病人識別碼，醫院的 MRN。</div>
-            <div class="m-2 text-danger h3">@patientInformation.Identifier</div>
-            <div>姓名</div>
-            <div class="m-2 text-danger h3">@patientInformation.Name</div>
-            <div>年紀</div>
-            <div class="m-2 text-danger h3">@patientInformation.GetAge()</div>
-            <div>性別</div>
-            <div class="m-2 text-danger h3">@patientInformation.Gender</div>
-            <div>身高</div>
-            <div class="m-2 text-danger h3">@patientInformation.GetHeight()</div>
-            <div>體重</div>
-            <div class="m-2 text-danger h3">@patientInformation.GetWeight()</div>
-        </div>
-    }
-
-    </div>
-
-    <div>
-        <Button Type="@AntDesign.ButtonType.Primary"
-                OnClick="@(async () =>await OnShowUploadDicomDialogAsync())"
-                Disabled="@(!isAccessTokenReady || string.IsNullOrEmpty(SubjectNo))">
-            上傳 DICOM 檔案
-        </Button>
-        <div class="header green-header">
-            CT Image
-        </div>
-        <div class="empty-image-area" style="display:flex; justify-content:center">
-            <img src="@($"{image}?v={imageVersion}")" class="responsive-image" />
-        </div>
-    </div>
+    </footer>
 </div>
- *@
+
 <UploadDicomDialog OpenPicker=ShowUploadDicomDialog
                    SubjectNo="@SubjectNo"
                    OnConfirmCallback=OnUploadDicomAsync />
