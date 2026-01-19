@@ -25,6 +25,7 @@ public partial class LaunchView
 
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
+        return;
         if (firstRender)
         {
             try

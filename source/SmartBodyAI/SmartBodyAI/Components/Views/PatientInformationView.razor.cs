@@ -570,4 +570,9 @@ public partial class PatientInformationView
         ShowUploadDicomDialog = true;
         await System.Threading.Tasks.Task.Yield();
     }
+
+    void OnViewResult()
+    {
+        NavigationManager.NavigateTo($"/AIResult");
+    }
 }

@@ -1,0 +1,57 @@
+﻿    <!-- Header -->
+<header>
+    <div class="header-container">
+        <div class="header-left">
+            <img src="img/ncku_logo.svg" alt="成大醫院">
+            <img src="img/ncku_header.png" alt="成大醫院">
+        </div>
+        <h1 class="header-title">身體組成AI分析</h1>
+        <button class="btn-back" onclick="history.back()">←</button>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- DICOM Images -->
+    <div class="images-container">
+        <div class="dicom-image">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E7%97%85%E6%82%A3%E6%B8%85%E5%96%AE%20%287%29-iNHGJEXAjOe0BitsaDndZ39kjdiRSD.png" alt="DICOM Image 1">
+        </div>
+        <div class="dicom-image">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E7%97%85%E6%82%A3%E6%B8%85%E5%96%AE%20%287%29-iNHGJEXAjOe0BitsaDndZ39kjdiRSD.png" alt="DICOM Image 2">
+        </div>
+    </div>
+
+    <!-- Details Table -->
+    <div class="details-container">
+        <div class="details-table">
+            <div class="table-header">
+                <h2 class="table-title">詳細內容</h2>
+            </div>
+            <table class="table-body">
+                <tr>
+                    <td>骨骼肌指標(SMI)</td>
+                    <td>???</td>
+                    <td>低密度肌肉區域(LAMA)</td>
+                    <td>???(平方公分)</td>
+                </tr>
+                <tr>
+                    <td>骨骼肌密度(SMD)</td>
+                    <td>???(HU)</td>
+                    <td>正常密度肌肉區域(NAMA)</td>
+                    <td>???(平方公分)</td>
+                </tr>
+                <tr>
+                    <td>肌間/肌肉脂肪組織(IMAT)</td>
+                    <td>???(平方公分)</td>
+                    <td>肌肉脂肪變性(Myosteatosis)</td>
+                    <td>???(平方公分)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</main>
+
+@code {
+
+}

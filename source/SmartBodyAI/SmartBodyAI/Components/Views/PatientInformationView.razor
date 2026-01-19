@@ -1,4 +1,118 @@
-﻿<div>
+﻿    <!-- Header -->
+<header>
+    <div class="header-container">
+        <div class="header-left">
+            <img src="img/ncku_logo.svg" alt="成大醫院">
+            <img src="img/ncku_header.png" alt="成大醫院">
+        </div>
+        <h1 class="header-title">身體組成AI分析</h1>
+    </div>
+</header>
+
+<!-- Progress Steps -->
+<div class="progress-container">
+    <div class="progress-step active">
+        <div class="progress-step-icon">!</div>
+        <span class="progress-step-text">確認基本資料</span>
+    </div>
+    <span class="progress-arrow">→</span>
+    <div class="progress-step">
+        <div class="progress-step-icon">1</div>
+        <span class="progress-step-text">上傳DICOM</span>
+    </div>
+    <span class="progress-arrow">→</span>
+    <div class="progress-step">
+        <div class="progress-step-icon">2</div>
+        <span class="progress-step-text">進行AI推論</span>
+    </div>
+    <span class="progress-arrow">→</span>
+    <div class="progress-step">
+        <div class="progress-step-icon">3</div>
+        <span class="progress-step-text">查看AI分析</span>
+    </div>
+</div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Left Section - ID Input -->
+    <div>
+        <h2 class="id-input-title">身分證字號：</h2>
+        <input type="text"
+               placeholder="請輸入身分證字號"
+               class="id-input-field">
+        <div class="btn-container">
+            <button class="btn-confirm" @onclick="@(async () => { await OnChoicePatientNAsync("");})">
+                確認
+            </button>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <p class="info-box-title">
+                <span class="info-box-icon">?</span>
+                何謂DICOM？
+            </p>
+            <p class="info-box-text">DICOM 是醫療影像的標準格式，可用來分析身體組成</p>
+        </div>
+    </div>
+
+    <div>
+        <div class="patient-card">
+            <div class="patient-header">
+                <span class="patient-name">王小美</span>
+                <span class="patient-age">24歲</span>
+            </div>
+            <div class="patient-body">
+                <div class="patient-details">
+                    <p><span>性別：</span><span>女</span></p>
+                    <p><span>身高：</span><span>165</span></p>
+                    <p><span>體重：</span><span>52</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Section - DICOM Viewer -->
+    <div>
+        <div class="dicom-card">
+            <div class="dicom-header">
+                <h3 class="dicom-title">DICOM</h3>
+            </div>
+            <div class="dicom-body">
+                <div class="dicom-viewer">
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E7%97%85%E6%82%A3%E6%B8%85%E5%96%AE%20%287%29-iNHGJEXAjOe0BitsaDndZ39kjdiRSD.png"
+                         alt="DICOM CT Scan">
+                </div>
+                <div class="dicom-buttons">
+                    <button class="btn-select-dicom">
+                        <span>⬆️</span>
+                        <span>選擇DICOM影像</span>
+                    </button>
+                    <button class="btn-ai-inference">
+                        AI推論
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="page-footer">
+    <div class="footer-logo">
+        <img src="img/exentric.png" alt="eXentric">
+    </div>
+    <div class="footer-buttons">
+        <button class="btn-result" @onclick="OnViewResult">
+            <span>🔍</span>
+            <span>查看結果</span>
+        </button>
+    </div>
+</footer>
+
+
+
+@* <div>
     <div class="m-auto">
         <div>處理狀態訊息</div>
 
@@ -70,7 +184,7 @@
         </div>
     </div>
 </div>
-
+ *@
 <UploadDicomDialog OpenPicker=ShowUploadDicomDialog
                    SubjectNo="@SubjectNo"
                    OnConfirmCallback=OnUploadDicomAsync />
