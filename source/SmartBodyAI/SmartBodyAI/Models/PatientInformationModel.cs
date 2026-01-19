@@ -32,9 +32,9 @@ public class PatientInformationModel
             var today = DateTime.Today;
             var age = today.Year - birthDate.Year;
             if (birthDate.Date > today.AddYears(-age)) age--;
-            return age.ToString();
+            return age.ToString()+ " 歲";
         }
-        return "未知";
+        return "";
     }
 
     public string GetHeight()

@@ -131,6 +131,11 @@ public partial class PatientInformationView
     /// </summary>
     public async System.Threading.Tasks.Task<SmartResponse> GetAccessTokenAsync()
     {
+        if(string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+        {
+            return new SmartResponse();
+        }
+
         SmartResponse smartResponse = new();
         Dictionary<string, string> requestValues = new Dictionary<string, string>()
             {
