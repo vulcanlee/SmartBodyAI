@@ -88,7 +88,11 @@
                         }
                         else
                         {
-                            <p class="dicom-placeholder-text">尚未選擇DICOM影像</p>
+                            <div class="dicom-placeholder">
+                                <div class="placeholder-icon">📋</div>
+                                <div class="placeholder-text">DICOM 預覽</div>
+                                <div class="placeholder-subtitle">尚未上傳影像</div>
+                            </div>
                         }
                     </div>
                     <div class="dicom-buttons">
@@ -107,9 +111,6 @@
 
     <!-- Footer -->
     <footer class="page-footer">
-        <div class="footer-logo">
-            <img src="img/exentric.png" alt="eXentric">
-        </div>
         <div class="footer-buttons">
             <button class="btn-result" @onclick="OnViewResult">
                 <span>🔍</span>

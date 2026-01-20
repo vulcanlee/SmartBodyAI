@@ -57,6 +57,22 @@ main {
     }
 }
 
+/* 小螢幕電腦 (寬度 <= 1366px) - 啟用滾動 */
+@media (max-width: 1366px) {
+    html, body {
+        overflow: auto;
+    }
+
+    .page {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .content {
+        height: auto;
+    }
+}
+
 @media (min-width: 641px) {
     .page {
         flex-direction: row;

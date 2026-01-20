@@ -21,10 +21,10 @@ body {
 
 /* 主容器 - 佔滿整個視窗 */
 .patient-view-container {
-    height: 100vh;
+/*    height: 100vh;*/
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+/*    overflow: hidden;*/
 }
 
 /* Main Content */
@@ -206,10 +206,11 @@ header {
 
 .patient-header {
     background-color: #fef3c7;
-    padding: 1rem 2rem;
+    padding: 0.6rem 2rem;
     display: flex;
     align-items: baseline;
     gap: 1rem;
+    min-height: 60px;
 }
 
 .patient-name {
@@ -404,12 +405,12 @@ header {
 
 /* Footer */
 .page-footer {
-    background-color: #EDEDED;
+    background-color: white;
     color: white;
     padding: 1rem 3rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content:flex-end;
     flex-shrink: 0;
 }
 
@@ -457,6 +458,23 @@ header {
     }
 
 /* 響應式設計 - 小螢幕適配 */
+
+/* 小螢幕電腦 (寬度 <= 1366px) - 啟用滾動 */
+@media (max-width: 1366px) {
+    html, body {
+        overflow: auto;
+    }
+
+    .patient-view-container {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        overflow-y: auto;
+        height: auto;
+    }
+}
 
 /* 平板尺寸 (寬度 <= 1200px) */
 @media (max-width: 1200px) {
