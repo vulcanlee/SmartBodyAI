@@ -13,7 +13,7 @@ body {
     align-items: center;
     background: linear-gradient(135deg, #fdf6f0 0%, #f5e6e0 50%, #e8f5e8 100%);
     position: relative;
-    overflow-y: hidden;
+    overflow-y: hidden !important;
 }
 
 /* 背景浮水印 */
