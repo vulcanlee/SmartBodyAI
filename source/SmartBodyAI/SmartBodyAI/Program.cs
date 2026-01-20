@@ -67,6 +67,15 @@ namespace SmartBodyAI
             {
                 Directory.CreateDirectory(MagicObjectHelper.UploadDicomTempPath);
             }
+
+            string filename = "sample1.png";
+            string prepareImageSourcePath = Path.Combine("Datas", filename);
+            string prepareImageTargetPath = Path.Combine(MagicObjectHelper.DicomImagePath, filename);
+            File.Copy(prepareImageSourcePath, prepareImageTargetPath, true);
+            filename = "sample2.png";
+            prepareImageSourcePath = Path.Combine("Datas", filename);
+            prepareImageTargetPath = Path.Combine(MagicObjectHelper.DicomImagePath, filename);
+            File.Copy(prepareImageSourcePath, prepareImageTargetPath, true);
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions
             {
