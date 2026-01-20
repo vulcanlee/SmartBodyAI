@@ -44,6 +44,22 @@ body {
         min-height: 0;
         overflow-y: auto;
     }
+
+        /* 左邊第一欄 - 病歷號輸入區 */
+        .main-content > div:nth-child(1) {
+            flex: 1;
+        }
+
+        /* 中間第二欄 - 病人資訊區 */
+        .main-content > div:nth-child(2) {
+            flex: 1;
+        }
+
+        /* 右邊第三欄 - DICOM 區域（較寬） */
+        .main-content > div:nth-child(3) {
+            flex: 1.5;
+        }
+
 /* Header */
 header {
     flex-shrink: 0;
@@ -74,7 +90,8 @@ header {
     }
 
     .header-left img:last-child {
-        height: 4rem;
+        height: 6rem;
+        width:6rem;
     }
 
 .header-title {
@@ -271,7 +288,6 @@ header {
 
 .dicom-body {
     padding: 1.5rem;
-    padding-bottom: 2.5rem;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -282,10 +298,10 @@ header {
     background-color: black;
     border-radius: 0.5rem;
     overflow: hidden;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     flex: 1;
     min-height: 400px;
-    max-height: 500px;
+    max-height: 400px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -330,14 +346,13 @@ header {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    padding-bottom: 1.5rem;
 }
 
 .btn-select-dicom {
     flex: 1;
     background-color: #C6E8C4;
     color: #000;
-    padding: 1.25rem 2rem;
+    padding: 1.25rem 1rem;
     border-radius: 1rem;
     display: flex;
     align-items: center;

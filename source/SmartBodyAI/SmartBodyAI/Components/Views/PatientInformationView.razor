@@ -3,10 +3,9 @@
     <header>
         <div class="header-container">
             <div class="header-left">
-                <img src="img/ncku_logo.svg" alt="成大醫院">
-                <img src="img/ncku_header.png" alt="成大醫院">
+                <img src="img/jm_logo.png" alt="巨明生醫">               
             </div>
-            <h1 class="header-title">身體組成AI分析</h1>
+            <h1 class="header-title">CanWellBeing</h1>
         </div>
     </header>
 
@@ -31,6 +30,14 @@
             <div class="progress-step-icon">3</div>
             <span class="progress-step-text">查看AI分析</span>
         </div>
+
+        <div class="footer-buttons">
+            <button class="btn-result" @onclick="OnViewResult">
+                <span>🔍</span>
+                <span>查看結果</span>
+            </button>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -110,14 +117,14 @@
     </main>
 
     <!-- Footer -->
-    <footer class="page-footer">
+    @* <footer class="page-footer">
         <div class="footer-buttons">
             <button class="btn-result" @onclick="OnViewResult">
                 <span>🔍</span>
                 <span>查看結果</span>
             </button>
         </div>
-    </footer>
+    </footer> *@
 </div>
 
 <UploadDicomDialog OpenPicker=ShowUploadDicomDialog
