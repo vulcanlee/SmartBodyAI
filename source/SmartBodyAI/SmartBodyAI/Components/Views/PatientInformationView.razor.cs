@@ -1,6 +1,7 @@
 ﻿using AntDesign;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
+using Hl7.Fhir.Utility;
 using Microsoft.AspNetCore.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
@@ -597,5 +598,31 @@ public partial class PatientInformationView
     void OnViewResult()
     {
         NavigationManager.NavigateTo($"/AIResult");
+    }
+
+    async System.Threading.Tasks.Task OnAIInferenceAsync()
+    {
+        string message = "請稍後，資料與影像已經送至 AI 推論系統中";
+        await Notice.Open(new NotificationConfig()
+        {
+            Message = "AI 推論",
+            Key = Guid.NewGuid().ToString(),
+            Description = $"{message}",
+            NotificationType = NotificationType.Success,
+        });
+        // 暫停 5~10 秒
+        Random random = new Random();
+
+        await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(random.Next(5,10)));
+
+        message = "AI 推論已經完成，點選 [🔍 查看結果] 按鈕，即可看到推論結果";
+        await Notice.Open(new NotificationConfig()
+        {
+            Message = "AI 推論",
+            Key = Guid.NewGuid().ToString(),
+            Description = $"{message}",
+            NotificationType = NotificationType.Success,
+        });
+
     }
 }

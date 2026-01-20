@@ -100,7 +100,7 @@
                             <span>⬆️</span>
                             <span>選擇DICOM影像</span>
                         </button>
-                        <button class="btn-ai-inference">
+                        <button class="btn-ai-inference" @onclick="@(async () => {await OnAIInferenceAsync();})">
                             AI推論
                         </button>
                     </div>
