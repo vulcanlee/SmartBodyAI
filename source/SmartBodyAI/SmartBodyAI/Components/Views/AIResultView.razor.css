@@ -46,7 +46,8 @@ header {
     }
 
     .header-left img:last-child {
-        height: 4rem;
+        height: 6rem;
+        width: 6rem;
     }
 
 .header-title {
