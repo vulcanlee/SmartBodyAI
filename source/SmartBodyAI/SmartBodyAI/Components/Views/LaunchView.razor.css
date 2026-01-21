@@ -16,20 +16,18 @@ body {
     overflow-y: hidden !important;
 }
 
-/* 主要內容區 */
 .main-content {
     display: flex;
     align-items: center; 
     justify-content: center;
-    gap: 40px;
     z-index: 1;
     position: relative;
     min-height: 100vh; 
+    gap: 20px;
 }
 
-/* 醫院 Logo */
 .hospital-logo {
-    width: 100%;
+    width: 200px;
     height: 100%;
     position: relative;
 }
@@ -58,7 +56,7 @@ body {
 /* 公司 Logo */
 .company-section {
     position: absolute;
-    bottom: 90px;
+    bottom: 40px;
     right: 60px;
     z-index: 1;
 }
