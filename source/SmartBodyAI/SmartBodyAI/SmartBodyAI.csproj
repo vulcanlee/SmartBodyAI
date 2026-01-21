@@ -8,6 +8,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Datas\sample1.png" />
+	  <None Remove="Datas\sample2.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Datas\sample1.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Datas\sample2.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="AntDesign" Version="1.5.1" />
 		<PackageReference Include="fo-dicom.Codecs" Version="5.16.5.1" />
 		<PackageReference Include="fo-dicom.Imaging.ImageSharp" Version="5.2.5" />
