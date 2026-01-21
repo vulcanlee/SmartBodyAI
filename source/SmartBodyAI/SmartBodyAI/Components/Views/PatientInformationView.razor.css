@@ -21,10 +21,10 @@ body {
 
 /* 主容器 - 佔滿整個視窗 */
 .patient-view-container {
-/*    height: 100vh;*/
+    /*    height: 100vh;*/
     display: flex;
     flex-direction: column;
-/*    overflow: hidden;*/
+    /*    overflow: hidden;*/
 }
 
 /* Main Content */
@@ -91,7 +91,7 @@ header {
 
     .header-left img:last-child {
         height: 6rem;
-        width:6rem;
+        width: 6rem;
     }
 
 .header-title {
@@ -424,7 +424,7 @@ header {
     padding: 1rem 3rem;
     display: flex;
     align-items: center;
-    justify-content:flex-end;
+    justify-content: flex-end;
     flex-shrink: 0;
 }
 
@@ -438,8 +438,8 @@ header {
 }
 
 .btn-result {
-    background-color: #C6E8C4;
-    color: black;
+    /*background-color: #C6E8C4;*/
+    color: #4b5563;
     padding: 0.75rem 2rem;
     border-radius: 9999px;
     display: flex;
@@ -451,6 +451,13 @@ header {
     border: none;
     cursor: pointer;
 }
+
+
+    .btn-result.active {
+        background-color: #C6E8C4;
+        /*border-color: #fcd34d;*/
+        color: black;
+    }
 
 .btn-zoom {
     background-color: #2dd4bf;
@@ -531,15 +538,15 @@ header {
         flex-wrap: wrap;
     }
 
-    .main-content > div:first-child {
-        flex: 1 1 100%;
-        margin-bottom: 1rem;
-    }
+        .main-content > div:first-child {
+            flex: 1 1 100%;
+            margin-bottom: 1rem;
+        }
 
-    .main-content > div:nth-child(2),
-    .main-content > div:nth-child(3) {
-        flex: 1 1 calc(50% - 0.5rem);
-    }
+        .main-content > div:nth-child(2),
+        .main-content > div:nth-child(3) {
+            flex: 1 1 calc(50% - 0.5rem);
+        }
 
     .header-title {
         font-size: 1.75rem;
@@ -572,17 +579,17 @@ header {
         height: auto;
     }
 
-    .main-content > div {
-        flex: 1 1 100%;
-        width: 100%;
-        overflow-y: visible;
-    }
+        .main-content > div {
+            flex: 1 1 100%;
+            width: 100%;
+            overflow-y: visible;
+        }
 
-    .main-content > div:first-child,
-    .main-content > div:nth-child(2),
-    .main-content > div:nth-child(3) {
-        flex: 1 1 100%;
-    }
+            .main-content > div:first-child,
+            .main-content > div:nth-child(2),
+            .main-content > div:nth-child(3) {
+                flex: 1 1 100%;
+            }
 
     .header-container {
         flex-direction: column;
