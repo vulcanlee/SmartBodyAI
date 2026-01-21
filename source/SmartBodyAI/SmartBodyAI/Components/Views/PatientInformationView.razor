@@ -11,22 +11,22 @@
 
     <!-- Progress Steps -->
     <div class="progress-container">
-        <div class="progress-step active">
+        <div class="progress-step @processModel.確認基本資料">
             <div class="progress-step-icon">!</div>
             <span class="progress-step-text">確認基本資料</span>
         </div>
         <span class="progress-arrow">→</span>
-        <div class="progress-step">
+        <div class="progress-step @processModel.上傳DICOM">
             <div class="progress-step-icon">1</div>
             <span class="progress-step-text">上傳DICOM</span>
         </div>
         <span class="progress-arrow">→</span>
-        <div class="progress-step">
+        <div class="progress-step @processModel.進行AI推論">
             <div class="progress-step-icon">2</div>
             <span class="progress-step-text">進行AI推論</span>
         </div>
         <span class="progress-arrow">→</span>
-        <div class="progress-step">
+        <div class="progress-step @processModel.查看AI分析">
             <div class="progress-step-icon">3</div>
             <span class="progress-step-text">查看AI分析</span>
         </div>
@@ -44,7 +44,7 @@
     <main class="main-content">
         <!-- Left Section - ID Input -->
         <div>
-            <h2 class="id-input-title">病歷號：</h2>
+            <h2 class="id-input-title" @onclick="OnDefaultPatient">病歷號：</h2>
             <input type="text" @bind="patientMrm"
                    placeholder="請輸入病歷號"
                    class="id-input-field">

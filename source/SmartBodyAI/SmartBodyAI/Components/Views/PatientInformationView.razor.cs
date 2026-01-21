@@ -1,4 +1,5 @@
 ﻿using AntDesign;
+using FellowOakDicom.Network;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Hl7.Fhir.Utility;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -40,6 +42,8 @@ public partial class PatientInformationView
     string image = "";
     string imageVersion = DateTime.Now.Ticks.ToString();
 
+    ProcessModel processModel = new ProcessModel();
+
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -53,6 +57,9 @@ public partial class PatientInformationView
                 NavigationManager.NavigateTo("/");
                 return;
             }
+
+            processModel.Reset();
+            processModel.Build();
 
             await UpdateMessage("更新取得的授權碼與狀態碼...");
             await SetAuthCodeAsync();
@@ -103,10 +110,14 @@ public partial class PatientInformationView
         }
         SubjectNo = patientInformation.Id;
 
+        StateHasChanged();
+
         await UpdateMessage($"取得此病患的身高與體重...");
         await GetHeightAndWeightAsync(smartResponse);
         await UpdateMessage($"OK...");
 
+        processModel.ActiveClass[1] = MagicObjectHelper.ActiveClassName;
+        processModel.Build();
     }
 
     /// <summary>
@@ -135,7 +146,7 @@ public partial class PatientInformationView
     /// </summary>
     public async System.Threading.Tasks.Task<SmartResponse> GetAccessTokenAsync()
     {
-        if(string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+        if (string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
         {
             return new SmartResponse();
         }
@@ -300,6 +311,9 @@ public partial class PatientInformationView
         patientInformation.HeightUnit = heightUnit?.ToString();
         patientInformation.WeightValue = weightValue?.ToString();
         patientInformation.WeightUnit = weightUnit?.ToString();
+
+        patientInformation.HeightValue = patientInformation.HeightValue.ToFloat().ToString("F2");
+        patientInformation.WeightValue = patientInformation.WeightValue.ToFloat().ToString("F2");
 
         return;
     }
@@ -561,12 +575,13 @@ public partial class PatientInformationView
         //await System.Threading.Tasks.Task.Delay(1000);
         //StateHasChanged();
 
-        var task = Notice.Open(new NotificationConfig()
+        await Notice.Open(new NotificationConfig()
         {
             Message = "存取 FHIR 資源",
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
             NotificationType = NotificationType.Warning,
+            Duration = 1
         });
 
     }
@@ -580,11 +595,18 @@ public partial class PatientInformationView
             image = Path.Combine(MagicObjectHelper.DicomWebPath, imageFilename);
         }
         ShowUploadDicomDialog = false;
+
+        processModel.ActiveClass[2] = MagicObjectHelper.ActiveClassName;
+        processModel.Build();
         StateHasChanged();
+
     }
 
     async System.Threading.Tasks.Task OnShowUploadDicomDialogAsync()
     {
+        if (processModel.ActiveClass[1] != MagicObjectHelper.ActiveClassName)
+            return;
+
         ShowUploadDicomDialog = true;
         await System.Threading.Tasks.Task.Yield();
     }
@@ -592,16 +614,26 @@ public partial class PatientInformationView
     async System.Threading.Tasks.Task OnPatientSendAsync()
     {
         patientId = patientMrm;
-        await OnQueryPatientAsync();    
+        await OnQueryPatientAsync();
     }
 
+    void OnDefaultPatient()
+    {
+        patientMrm = "3c7d3369-55b5-420b-83d3-c5dda319b9c9";
+    }
     void OnViewResult()
     {
+        if (processModel.ActiveClass[3] != MagicObjectHelper.ActiveClassName)
+            return;
+
         NavigationManager.NavigateTo($"/AIResult");
     }
 
     async System.Threading.Tasks.Task OnAIInferenceAsync()
     {
+        if (processModel.ActiveClass[2] != MagicObjectHelper.ActiveClassName)
+            return;
+
         string message = "請稍後，資料與影像已經送至 AI 推論系統中";
         await Notice.Open(new NotificationConfig()
         {
@@ -609,11 +641,12 @@ public partial class PatientInformationView
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
             NotificationType = NotificationType.Success,
+             Duration = 1,
         });
         // 暫停 5~10 秒
         Random random = new Random();
 
-        await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(random.Next(5,10)));
+        await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(random.Next(5, 10)));
 
         message = "AI 推論已經完成，點選 [🔍 查看結果] 按鈕，即可看到推論結果";
         await Notice.Open(new NotificationConfig()
@@ -622,7 +655,12 @@ public partial class PatientInformationView
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
             NotificationType = NotificationType.Success,
+            Duration= 1,
         });
+
+        processModel.ActiveClass[3] = MagicObjectHelper.ActiveClassName;
+        processModel.Build();
+        StateHasChanged();
 
     }
 }
