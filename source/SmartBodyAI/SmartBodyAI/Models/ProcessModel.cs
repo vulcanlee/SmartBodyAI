@@ -20,7 +20,7 @@ public class ProcessModel
     public void Reset()
     {
         ActiveClass.Clear();
-        ActiveClass.Add("active");
+        ActiveClass.Add("");
         ActiveClass.Add("");
         ActiveClass.Add("");
         ActiveClass.Add("");

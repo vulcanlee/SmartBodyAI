@@ -34,6 +34,7 @@ public partial class LaunchView
         {
             try
             {
+                await System.Threading.Tasks.Task.Delay(2000);
                 await UpdateMessage("系統初始化中...");
                 KeepLaunchIss();
                 await UpdateMessage("從 FHIR 伺服器取得 Metadata 資訊...");
@@ -51,6 +52,7 @@ public partial class LaunchView
                 }
 
                 await UpdateMessage($"重新導向到授權伺服器");
+                await System.Threading.Tasks.Task.Delay(1000);
                 NavigationManager.NavigateTo(authUrl);
             }
             catch (Exception ex)
@@ -73,7 +75,7 @@ public partial class LaunchView
             Description = $"{message}",
             NotificationType = NotificationType.Warning,
         });
-        await System.Threading.Tasks.Task.Delay(1000);
+        //await System.Threading.Tasks.Task.Delay(1000);
     }
 
     /// <summary>

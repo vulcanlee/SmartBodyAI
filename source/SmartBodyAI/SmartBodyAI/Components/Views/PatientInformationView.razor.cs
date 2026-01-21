@@ -77,6 +77,11 @@ public partial class PatientInformationView
             await UpdateMessage($"已經取得 Access Token : {smartResponse.AccessToken}");
             //await GetLastYearOrdersAsync(smartResponse);
             StateHasChanged();
+
+            processModel.ActiveClass[0] = MagicObjectHelper.ActiveClassName;
+            processModel.Build();
+            StateHasChanged();
+
         }
     }
 
@@ -571,30 +576,42 @@ public partial class PatientInformationView
 
     async System.Threading.Tasks.Task UpdateMessage(string message)
     {
-        //ProcessingMessage = message;
-        //await System.Threading.Tasks.Task.Delay(1000);
-        //StateHasChanged();
-
         await Notice.Open(new NotificationConfig()
         {
             Message = "存取 FHIR 資源",
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
-            NotificationType = NotificationType.Warning,
+            NotificationType = NotificationType.Info,
             Duration = 1
+        });
+
+    }
+
+    async System.Threading.Tasks.Task UpdateMessageError(string message)
+    {
+        await Notice.Open(new NotificationConfig()
+        {
+            Message = "操作上發生問題",
+            Key = Guid.NewGuid().ToString(),
+            Description = $"{message}",
+            NotificationType = NotificationType.Error,
         });
 
     }
 
     async System.Threading.Tasks.Task OnUploadDicomAsync(string filename)
     {
+        ShowUploadDicomDialog = false;
         if (filename != null)
         {
             imageVersion = DateTime.Now.Ticks.ToString();
             string imageFilename = Path.GetFileName(filename.Replace(".dicm", ".png"));
             image = Path.Combine(MagicObjectHelper.DicomWebPath, imageFilename);
         }
-        ShowUploadDicomDialog = false;
+        else
+        {
+            return;
+        }
 
         processModel.ActiveClass[2] = MagicObjectHelper.ActiveClassName;
         processModel.Build();
@@ -604,8 +621,12 @@ public partial class PatientInformationView
 
     async System.Threading.Tasks.Task OnShowUploadDicomDialogAsync()
     {
+
         if (processModel.ActiveClass[1] != MagicObjectHelper.ActiveClassName)
+        {
+            await UpdateMessageError($"尚未輸入完成病歷號與取得病患的年紀、性別、身高與體重資訊，所以無法進行上傳 DICOM，操作失敗");
             return;
+        }
 
         ShowUploadDicomDialog = true;
         await System.Threading.Tasks.Task.Yield();
@@ -613,6 +634,18 @@ public partial class PatientInformationView
 
     async System.Threading.Tasks.Task OnPatientSendAsync()
     {
+
+        if (processModel.ActiveClass[0] != MagicObjectHelper.ActiveClassName)
+        {
+            await UpdateMessageError($"尚未取得 Access Token 存取權杖，操作失敗");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(patientMrm))
+        {
+            await UpdateMessageError($"病歷號必須要輸入");
+            return;
+        }
         patientId = patientMrm;
         await OnQueryPatientAsync();
     }
@@ -621,18 +654,26 @@ public partial class PatientInformationView
     {
         patientMrm = "3c7d3369-55b5-420b-83d3-c5dda319b9c9";
     }
-    void OnViewResult()
+    async System.Threading.Tasks.Task OnViewResultAsync()
     {
+
         if (processModel.ActiveClass[3] != MagicObjectHelper.ActiveClassName)
+        {
+            await UpdateMessageError($"尚未完成 AI 推論作業，將無法進行 查看AI分析 功能，操作失敗");
             return;
+        }
 
         NavigationManager.NavigateTo($"/AIResult");
     }
 
     async System.Threading.Tasks.Task OnAIInferenceAsync()
     {
+
         if (processModel.ActiveClass[2] != MagicObjectHelper.ActiveClassName)
+        {
+            await UpdateMessageError($"尚未完成上傳 DICOM 檔案，所以無法進行 AI 推論作業，操作失敗");
             return;
+        }
 
         string message = "請稍後，資料與影像已經送至 AI 推論系統中";
         await Notice.Open(new NotificationConfig()
@@ -641,7 +682,7 @@ public partial class PatientInformationView
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
             NotificationType = NotificationType.Success,
-             Duration = 1,
+            Duration = 1,
         });
         // 暫停 5~10 秒
         Random random = new Random();
@@ -655,7 +696,7 @@ public partial class PatientInformationView
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
             NotificationType = NotificationType.Success,
-            Duration= 1,
+            Duration = 1,
         });
 
         processModel.ActiveClass[3] = MagicObjectHelper.ActiveClassName;

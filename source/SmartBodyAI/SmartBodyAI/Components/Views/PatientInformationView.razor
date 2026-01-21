@@ -32,7 +32,7 @@
         </div>
 
         <div class="footer-buttons">
-            <button class="btn-result" @onclick="OnViewResult">
+            <button class="btn-result" @onclick="@(async () => await OnViewResultAsync())">
                 <span>🔍</span>
                 <span>查看結果</span>
             </button>
