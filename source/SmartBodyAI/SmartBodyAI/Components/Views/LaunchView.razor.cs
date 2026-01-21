@@ -34,7 +34,7 @@ public partial class LaunchView
         {
             try
             {
-                await System.Threading.Tasks.Task.Delay(2000);
+                await System.Threading.Tasks.Task.Delay(4000);
                 await UpdateMessage("系統初始化中...");
                 KeepLaunchIss();
                 await UpdateMessage("從 FHIR 伺服器取得 Metadata 資訊...");
