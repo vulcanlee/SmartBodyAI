@@ -44,11 +44,11 @@ public partial class LaunchView
                 {
                     await UpdateMessage("正在處理授權請求，請稍候...");
                     authUrl = await GetAuthorizeUrlAsync();
-                    await UpdateMessage($"取得重新導向到授權伺服器 URL:{authUrl}");
+                    await UpdateMessage($"準備重新導向",$"取得重新導向到授權伺服器 URL:{authUrl}", NotificationType.Warning, 3.0);
                 }
                 else
                 {
-                    await UpdateMessage("從 FHIR 伺服器取得 Metadata 資訊失敗");
+                    await UpdateMessage("發生例外異常","從 FHIR 伺服器取得 Metadata 資訊失敗", NotificationType.Error, 3.0);
                 }
 
                 await UpdateMessage($"重新導向到授權伺服器");
@@ -57,25 +57,27 @@ public partial class LaunchView
             }
             catch (Exception ex)
             {
-                await UpdateMessage($"發生例外異常 : {ex.Message}");
+                await UpdateMessage($"發生例外異常", $"{ex.Message}", NotificationType.Error, 2.0);
             }
         }
     }
 
-    async System.Threading.Tasks.Task UpdateMessage(string message)
+    async System.Threading.Tasks.Task UpdateMessage(string description)
     {
-        //ProcessingMessage = message;
-        //await System.Threading.Tasks.Task.Delay(1000);
-        //StateHasChanged();
+        await UpdateMessage("取得 OAuth2 授權碼", description, NotificationType.Info, 0.5);
+    }
 
+    async System.Threading.Tasks.Task UpdateMessage(string message, string description, NotificationType notificationType, double? duration)
+    {
         var task = Notice.Open(new NotificationConfig()
         {
-            Message = "取得 OAuth2 授權碼",
+            Message = message,
             Key = Guid.NewGuid().ToString(),
-            Description = $"{message}",
-            NotificationType = NotificationType.Warning,
+            Description = $"{description}",
+            NotificationType = notificationType,
+            Duration = duration,
         });
-        //await System.Threading.Tasks.Task.Delay(1000);
+        await task;
     }
 
     /// <summary>
@@ -176,7 +178,7 @@ public partial class LaunchView
         await OAuthStateStoreService.SaveAsync<SmartAppSettingModel>(state, SmartAppSettingService.Data, TimeSpan.FromMinutes(10));
 
         Console.WriteLine($"Generated state: {SmartAppSettingService.Data.State}");
-       
+
         // 建立 SMART on FHIR OAuth2 授權請求 URL，包含以下標準參數:
         // - response_type: 指定 OAuth2 流程類型為 "code" (授權碼流程)
         // - client_id: 此 SMART App 在 EHR 系統中註冊的唯一識別碼
