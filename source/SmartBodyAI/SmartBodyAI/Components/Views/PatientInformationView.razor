@@ -68,13 +68,13 @@
             <div class="patient-card">
                 <div class="patient-header">
                     <span class="patient-name">@patientInformation.Name</span>
-                    <span class="patient-age">@patientInformation.GetAge()</span>
+                    <span class="patient-age">@patientInformation.GetAgeDescription()</span>
                 </div>
                 <div class="patient-body">
                     <div class="patient-details">
                         <p><span>性別：</span><span>@patientInformation.Gender</span></p>
-                        <p><span>身高：</span><span>@patientInformation.GetHeight()</span></p>
-                        <p><span>體重：</span><span>@patientInformation.GetWeight()</span></p>
+                        <p><span>身高：</span><span>@patientInformation.GetHeightDescription()</span></p>
+                        <p><span>體重：</span><span>@patientInformation.GetWeightDescription()</span></p>
                     </div>
                 </div>
             </div>

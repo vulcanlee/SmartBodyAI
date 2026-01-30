@@ -1,13 +1,10 @@
 ﻿using AntDesign;
-using FellowOakDicom.Network;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
-using Hl7.Fhir.Utility;
 using Microsoft.AspNetCore.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
-using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -27,6 +24,8 @@ public partial class PatientInformationView
     public NavigationManager NavigationManager { get; init; }
     [Inject]
     public INotificationService Notice { get; init; }
+    [Inject]
+    public SettingService SettingService { get; init; }
 
     Patient patient = new();
     SmartResponse smartResponse = new();
@@ -674,6 +673,39 @@ public partial class PatientInformationView
             await UpdateMessageError($"尚未完成上傳 DICOM 檔案，所以無法進行 AI 推論作業，操作失敗");
             return;
         }
+
+        #region 產生要推論的壓縮檔案
+        PatientDataModel patientDataModel = new PatientDataModel()
+        {
+            Age = patientInformation.GetAge(),
+            Gender = patientInformation.Gender.ToLower() == "Male".ToLower() ? "M" : "F",
+            Height = patientInformation.GetHeightDescription(),
+            Weight = patientInformation.GetWeightDescription(),
+            Code = patientInformation.Id
+        };
+
+        string patientDataJson = JsonSerializer.Serialize<PatientDataModel>(patientDataModel);
+        string passApiDataPath = Path.Combine(MagicObjectHelper.UploadDicomTempPath, $"{patientInformation.Identifier}");
+        if (Directory.Exists(passApiDataPath))
+        {
+            Directory.Delete(passApiDataPath, true);
+        }
+        Directory.CreateDirectory(passApiDataPath);
+        string patientDataFilename = Path.Combine(passApiDataPath, $"PatientDat.json");
+        await System.IO.File.WriteAllTextAsync(patientDataFilename, patientDataJson);
+
+        string sourceDicomPath = Path.Combine(MagicObjectHelper.UploadDicomPath, $"{SubjectNo}.dicm");
+        string targetDicomPath = Path.Combine(passApiDataPath, $"L3CT.dicm");
+
+        File.Copy(sourceDicomPath, targetDicomPath, true);
+
+        string zipFilename = Path.Combine(MagicObjectHelper.UploadDicomTempPath, $"{patientInformation.Identifier}.zip");
+        if (File.Exists(zipFilename))
+        {
+            File.Delete(zipFilename);
+        }
+        System.IO.Compression.ZipFile.CreateFromDirectory(passApiDataPath, zipFilename);
+        #endregion
 
         string message = "請稍後，資料與影像已經送至 AI 推論系統中";
         await Notice.Open(new NotificationConfig()

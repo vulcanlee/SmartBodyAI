@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../../../CTMS/src/CTMS/AIAgent.Business/AIAgent.Business.csproj" />
   <Project Path="SmartAgentApi/SmartAgentApi.csproj" />
 </Solution>

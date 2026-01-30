@@ -25,6 +25,16 @@ public class PatientInformationModel
         WeightUnit = string.Empty;
     }
 
+    public string GetAgeDescription()
+    {
+        var age = GetAge();
+        if (string.IsNullOrEmpty(age)==false)
+        {
+            age = $"{age} 歲";
+        }
+        return age;
+    }
+
     public string GetAge()
     {
         if (DateTime.TryParse(BirthDate, out var birthDate))
@@ -32,17 +42,25 @@ public class PatientInformationModel
             var today = DateTime.Today;
             var age = today.Year - birthDate.Year;
             if (birthDate.Date > today.AddYears(-age)) age--;
-            return age.ToString()+ " 歲";
+            return age.ToString();
         }
         return "";
     }
 
+    public string GetHeightDescription()
+    {
+        return $"{GetHeight()} {HeightUnit}";
+    }
+    public string GetWeightDescription()
+    {
+        return $"{GetWeight()} {WeightUnit}";
+    }
     public string GetHeight()
     {
-        return $"{HeightValue} {HeightUnit}";
+        return $"{HeightValue}";
     }
     public string GetWeight()
     {
-        return $"{WeightValue} {WeightUnit}";
+        return $"{WeightValue}";
     }
 }
