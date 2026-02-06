@@ -1,6 +1,10 @@
-@SmartAgentApi_HostAddress = http://localhost:5127
+@SmartAgentApi_HostAddress = https://localhost:7274
 
 GET {{SmartAgentApi_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+POST {{SmartAgentApi_HostAddress}}/dicompack
 
 ###

@@ -679,8 +679,8 @@ public partial class PatientInformationView
         {
             Age = patientInformation.GetAge(),
             Gender = patientInformation.Gender.ToLower() == "Male".ToLower() ? "M" : "F",
-            Height = patientInformation.GetHeightDescription(),
-            Weight = patientInformation.GetWeightDescription(),
+            Height = patientInformation.GetHeight(),
+            Weight = patientInformation.GetWeight(),
             Code = patientInformation.Id
         };
 

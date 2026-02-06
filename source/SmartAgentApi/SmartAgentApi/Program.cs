@@ -1,7 +1,9 @@
 
 using AIAgent.Models;
 using AIAgent.Services;
+using CTMS.DataModel.Models;
 using CTMS.Share.Helpers;
+using SyncExcel.Services;
 
 namespace SmartAgentApi
 {
@@ -19,6 +21,22 @@ namespace SmartAgentApi
 
             #region 客製化服務註冊
             builder.Services.AddScoped<AgentService>();
+            builder.Services.AddScoped<PatientAIInfoService>();
+            builder.Services.AddScoped<Phase1Phase2Service>();
+            builder.Services.AddScoped<DirectoryHelperService>();
+            builder.Services.AddScoped<AgentService>();
+
+            builder.Services.AddScoped<CurrentProject>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSingleton<RequestInformation>();
+
+            builder.Services.AddTransient<RandomListService>();
+            builder.Services.AddTransient<AgentService>();
+            builder.Services.AddTransient<PatientAIInfoService>();
+            builder.Services.AddTransient<Phase1Phase2Service>();
+            builder.Services.AddTransient<DirectoryHelperService>();
+            builder.Services.AddTransient<RiskAssessmentExcelService>();
+            builder.Services.AddTransient<InputCsvService>();
             #endregion
 
             #region 加入設定強型別注入宣告
