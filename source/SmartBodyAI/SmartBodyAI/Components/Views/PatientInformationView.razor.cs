@@ -681,7 +681,7 @@ public partial class PatientInformationView
             Gender = patientInformation.Gender.ToLower() == "Male".ToLower() ? "M" : "F",
             Height = patientInformation.GetHeight(),
             Weight = patientInformation.GetWeight(),
-            Code = patientInformation.Id
+            Code = patientInformation.Identifier,
         };
 
         string patientDataJson = JsonSerializer.Serialize<PatientDataModel>(patientDataModel);

@@ -51,6 +51,7 @@ public partial class LaunchView
                     await UpdateMessage("發生例外異常","從 FHIR 伺服器取得 Metadata 資訊失敗", NotificationType.Error, 3.0);
                 }
 
+                await System.Threading.Tasks.Task.Delay(500);
                 await UpdateMessage($"重新導向到授權伺服器");
                 await System.Threading.Tasks.Task.Delay(1000);
                 NavigationManager.NavigateTo(authUrl);

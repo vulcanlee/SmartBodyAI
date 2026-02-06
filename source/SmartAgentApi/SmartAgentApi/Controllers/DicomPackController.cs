@@ -133,7 +133,7 @@ namespace SmartAgentApi.Controllers
 
             patientAIInfo.癌別 = "EC";
             // 取得 extractPath 最後一個目錄名稱
-            patientAIInfo.KeyName = new DirectoryInfo(extractPath).Name;
+            patientAIInfo.KeyName = patientAIInfo.Code;
 
             string sourcePath = pathSourceDicom;
             string targetPath = sourcePath.Replace(filenameDicom, $"{patientAIInfo.KeyName}.dicm");
