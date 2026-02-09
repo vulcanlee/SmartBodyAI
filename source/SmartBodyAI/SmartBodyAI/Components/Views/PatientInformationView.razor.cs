@@ -43,6 +43,9 @@ public partial class PatientInformationView
 
     ProcessModel processModel = new ProcessModel();
 
+    string randomNumberKey = "";
+    CancellationTokenSource cts = new CancellationTokenSource();
+
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -674,18 +677,26 @@ public partial class PatientInformationView
             return;
         }
 
+        cts.Cancel();
+
+        cts = new CancellationTokenSource();
+
         #region 產生要推論的壓縮檔案
+        // 隨機產生亂數，需要為10位數
+        var random = new Random();
+        randomNumberKey = random.NextInt64(1_000_000_000_000, 9_999_999_999_999).ToString() + random.NextInt64(1_000_000_000_000, 9_999_999_999_999).ToString();
+
         PatientDataModel patientDataModel = new PatientDataModel()
         {
             Age = patientInformation.GetAge(),
             Gender = patientInformation.Gender.ToLower() == "Male".ToLower() ? "M" : "F",
             Height = patientInformation.GetHeight(),
             Weight = patientInformation.GetWeight(),
-            Code = patientInformation.Identifier,
+            Code = randomNumberKey,
         };
 
         string patientDataJson = JsonSerializer.Serialize<PatientDataModel>(patientDataModel);
-        string passApiDataPath = Path.Combine(MagicObjectHelper.UploadDicomTempPath, $"{patientInformation.Identifier}");
+        string passApiDataPath = Path.Combine(MagicObjectHelper.UploadDicomTempPath, $"{randomNumberKey}");
         if (Directory.Exists(passApiDataPath))
         {
             Directory.Delete(passApiDataPath, true);
@@ -699,12 +710,31 @@ public partial class PatientInformationView
 
         File.Copy(sourceDicomPath, targetDicomPath, true);
 
-        string zipFilename = Path.Combine(MagicObjectHelper.UploadDicomTempPath, $"{patientInformation.Identifier}.zip");
+        string zipFilename = Path.Combine(MagicObjectHelper.UploadDicomTempPath, $"{randomNumberKey}.zip");
         if (File.Exists(zipFilename))
         {
             File.Delete(zipFilename);
         }
         System.IO.Compression.ZipFile.CreateFromDirectory(passApiDataPath, zipFilename);
+        #endregion
+
+        #region 準備上傳
+        string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
+        string uploadUrl = $"{InferenceHostApi}/dicompack";
+        HttpClient httpClient = new HttpClient();
+        MultipartFormDataContent form = new MultipartFormDataContent();
+        byte[] zipBytes = await System.IO.File.ReadAllBytesAsync(zipFilename);
+        ByteArrayContent byteContent = new ByteArrayContent(zipBytes);
+        form.Add(byteContent, "file", $"{randomNumberKey}.zip");
+
+        HttpResponseMessage response = await httpClient.PostAsync(uploadUrl, form);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            await UpdateMessageError($"上傳失敗，無法進行 AI 推論作業，操作失敗");
+            return;
+        }
+
         #endregion
 
         string message = "請稍後，資料與影像已經送至 AI 推論系統中";
@@ -716,24 +746,109 @@ public partial class PatientInformationView
             NotificationType = NotificationType.Success,
             Duration = 1,
         });
-        // 暫停 5~10 秒
-        Random random = new Random();
 
-        await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(random.Next(5, 10)));
-
-        message = "AI 推論已經完成，點選 [🔍 查看結果] 按鈕，即可看到推論結果";
-        await Notice.Open(new NotificationConfig()
+        System.Threading.Tasks.Task task = System.Threading.Tasks.Task.Run(async () =>
         {
-            Message = "AI 推論",
-            Key = Guid.NewGuid().ToString(),
-            Description = $"{message}",
-            NotificationType = NotificationType.Success,
-            Duration = 1,
-        });
+            string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
+            string checkUrl = $"{InferenceHostApi}/CheckResult/{randomNumberKey}";
+            string downloadUrl = $"{InferenceHostApi}/Download/{randomNumberKey}";
+            HttpClient httpClient = new HttpClient();
 
-        processModel.ActiveClass[3] = MagicObjectHelper.ActiveClassName;
-        processModel.Build();
-        StateHasChanged();
+            while (true)
+            {
+                if (cts.IsCancellationRequested == true) break;
+                HttpResponseMessage response = await httpClient.GetAsync(checkUrl);
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(2));
+                    continue;
+                }
+
+                string json = await response.Content.ReadAsStringAsync();
+
+                message = "AI 推論已經完成，正在下載推論結果";
+
+                // 用 InvokeAsync 確保在主執行緒（同步 UI context）呼叫 Notification 與 StateHasChanged
+                await InvokeAsync(async () =>
+                {
+                    await Notice.Open(new NotificationConfig()
+                    {
+                        Message = "AI 推論",
+                        Key = Guid.NewGuid().ToString(),
+                        Description = $"{message}",
+                        NotificationType = NotificationType.Success,
+                        Duration = 1,
+                    });
+
+                    StateHasChanged();
+                });
+
+                // 下載推論結果
+                HttpResponseMessage downloadResponse = await httpClient.GetAsync(downloadUrl);
+
+                if (!downloadResponse.IsSuccessStatusCode)
+                {
+                    string errorMsg = $"下載 AI 推論結果失敗 (HTTP {(int)downloadResponse.StatusCode})";
+
+                    await InvokeAsync(async () =>
+                    {
+                        await Notice.Open(new NotificationConfig()
+                        {
+                            Message = "AI 推論",
+                            Key = Guid.NewGuid().ToString(),
+                            Description = errorMsg,
+                            NotificationType = NotificationType.Error,
+                        });
+                    });
+
+                    break;
+                }
+
+                // 讀取 zip 位元組
+                byte[] resultZipBytes = await downloadResponse.Content.ReadAsByteArrayAsync();
+
+                // 儲存 zip 檔：放在與上傳用 zip 同一個資料夾，檔名加一個後綴
+                string resultZipFilename = Path.Combine(
+                    MagicObjectHelper.UploadDicomTempPath,
+                    $"{randomNumberKey}_result.zip");
+
+                await System.IO.File.WriteAllBytesAsync(resultZipFilename, resultZipBytes);
+
+                // 解壓縮到指定資料夾 (例如 {UploadDicomTempPath}\{randomNumberKey}_result)
+                string resultExtractPath = Path.Combine(
+                    MagicObjectHelper.UploadDicomTempPath,
+                    $"{randomNumberKey}_result");
+
+                if (Directory.Exists(resultExtractPath))
+                {
+                    Directory.Delete(resultExtractPath, true);
+                }
+                Directory.CreateDirectory(resultExtractPath);
+
+                System.IO.Compression.ZipFile.ExtractToDirectory(
+                    resultZipFilename,
+                    resultExtractPath);
+
+                // 下載＋解壓完成通知
+                await InvokeAsync(async () =>
+                {
+                    await Notice.Open(new NotificationConfig()
+                    {
+                        Message = "AI 推論",
+                        Key = Guid.NewGuid().ToString(),
+                        Description = "AI 推論結果已下載並解壓完成，點選 [🔍 查看結果] 即可檢視。",
+                        NotificationType = NotificationType.Success,
+                        Duration = 2,
+                    });
+
+                    processModel.ActiveClass[3] = MagicObjectHelper.ActiveClassName;
+                    processModel.Build();
+                    StateHasChanged();
+                });
+                break;
+            }
+        }
+        );
     }
 }

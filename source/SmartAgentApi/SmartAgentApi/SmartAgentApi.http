@@ -8,3 +8,12 @@ Accept: application/json
 POST {{SmartAgentApi_HostAddress}}/dicompack
 
 ###
+
+@checkKey=66289592976114364271748871
+GET {{SmartAgentApi_HostAddress}}/dicompack/CheckResult/{{checkKey}}
+
+###
+
+GET {{SmartAgentApi_HostAddress}}/dicompack/Download/{{checkKey}}
+
+###

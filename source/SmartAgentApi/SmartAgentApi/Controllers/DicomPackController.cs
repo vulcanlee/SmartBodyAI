@@ -119,6 +119,100 @@ namespace SmartAgentApi.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("Download/{checkKey}")]
+        public async Task<IActionResult> Download(string checkKey)
+        {
+            string zipDirectoryPath = agentsetting.DicomFolderPath.Replace("Dicom", "Temp");
+            string queueFolderPath = agentsetting.QueueFolderPath;
+            string completeQueueName = agentsetting.CompleteQueueName;
+            string completeQueuePath = Path.Combine(queueFolderPath, completeQueueName);
+            string downloadPath = Path.Combine(completeQueuePath, checkKey);
+
+            if(Directory.Exists(zipDirectoryPath) == false)
+            {
+                Directory.CreateDirectory(zipDirectoryPath);
+            }
+
+            // 將 downloadPath 下所有檔案與目錄，都壓縮成為 zip 檔案
+            if (Directory.Exists(downloadPath) == false)
+            {
+                return NotFound(new
+                {
+                    Status = false,
+                    Message = "尚未完成 AI 推論，請稍後再試。"
+                });
+            }
+
+
+            string zipFilename = Path.Combine(zipDirectoryPath, $"{checkKey}.zip");
+            if (System.IO.File.Exists(zipFilename))
+            {
+                System.IO.File.Delete(zipFilename);
+            }
+            System.IO.Compression.ZipFile.CreateFromDirectory(downloadPath, zipFilename);
+
+            // 讀取壓縮檔並回傳
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(zipFilename);
+            var downloadFileName = $"{checkKey}.zip";
+            const string contentType = "application/zip";
+
+            return File(fileBytes, contentType, downloadFileName);
+        }
+
+        [HttpGet]
+        [Route("CheckResult/{checkKey}")]
+        public async Task<IActionResult> CheckResult(string checkKey)
+        {
+            string queueFolderPath = agentsetting.QueueFolderPath;
+            string completeQueueName = agentsetting.CompleteQueueName;
+            string completeQueuePath = Path.Combine(queueFolderPath, completeQueueName);
+            string checkPath = Path.Combine(completeQueuePath, checkKey);
+
+            if (Directory.Exists(checkPath) == false)
+            {
+                return NotFound(new
+                {
+                    Status = false,
+                    Message = "尚未完成 AI 推論，請稍後再試。"
+                });
+            }
+
+            var allDirectories = Directory.GetDirectories(checkPath);
+            if (allDirectories == null)
+            {
+                return NotFound(new
+                {
+                    Status = false,
+                    Message = "尚未完成 AI 推論，請稍後再試。"
+                });
+            }
+
+            var requiredKeywords = new[] { "Phase1Result", "Phase2Result", "Phase3Result" };
+
+            // 只要所有項目內，有這三個字串內的任一個，就視為 true
+            var isAllMatched = allDirectories.All(dir =>
+                requiredKeywords.Any(kw => dir.Contains(kw, StringComparison.OrdinalIgnoreCase)));
+
+            if (isAllMatched)
+            {
+                return Ok(new
+                {
+                    Status = true,
+                    Message = "AI 推論已完成，結果可供下載。",
+                });
+            }
+            else
+            {
+                return NotFound(new
+                {
+                    Status = false,
+                    Message = "尚未完成 AI 推論，請稍後再試。",
+                });
+            }
+        }
+
         public async Task PushToAICheck(string extractPath)
         {
             string result = "";

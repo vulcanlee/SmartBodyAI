@@ -17,6 +17,7 @@ public class SmartAppSettingService
         Data.ClientId = data.ClientId;
         Data.ProcessDelayTimeInMilliSeconds = data.ProcessDelayTimeInMilliSeconds;
         Data.AuthorizationScope = data.AuthorizationScope;
+        Data.InferenceHostApi = data.InferenceHostApi;
     }
 
     public void UpdateSetting(SmartAppSettingModel model)

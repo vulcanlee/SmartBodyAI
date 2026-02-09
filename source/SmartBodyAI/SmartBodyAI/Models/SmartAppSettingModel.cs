@@ -12,6 +12,7 @@ public class SmartAppSettingModel
     /// FHIR 伺服器的基底網址。
     /// </summary>
     public string FhirServerUrl { get; set; }
+    public string InferenceHostApi { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier for the client application.
