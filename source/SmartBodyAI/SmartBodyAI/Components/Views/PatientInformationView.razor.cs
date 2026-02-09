@@ -721,7 +721,11 @@ public partial class PatientInformationView
         #region 準備上傳
         string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
         string uploadUrl = $"{InferenceHostApi}/dicompack";
-        HttpClient httpClient = new HttpClient();
+        HttpClientHandler handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
+        };
+        HttpClient httpClient = new HttpClient(handler);
         MultipartFormDataContent form = new MultipartFormDataContent();
         byte[] zipBytes = await System.IO.File.ReadAllBytesAsync(zipFilename);
         ByteArrayContent byteContent = new ByteArrayContent(zipBytes);
