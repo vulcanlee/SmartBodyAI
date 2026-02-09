@@ -754,8 +754,8 @@ public partial class PatientInformationView
         System.Threading.Tasks.Task task = System.Threading.Tasks.Task.Run(async () =>
         {
             string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
-            string checkUrl = $"{InferenceHostApi}/CheckResult/{randomNumberKey}";
-            string downloadUrl = $"{InferenceHostApi}/Download/{randomNumberKey}";
+            string checkUrl = $"{InferenceHostApi}/dicompack/CheckResult/{randomNumberKey}";
+            string downloadUrl = $"{InferenceHostApi}/dicompack/Download/{randomNumberKey}";
             HttpClient httpClient = new HttpClient();
 
             while (true)
