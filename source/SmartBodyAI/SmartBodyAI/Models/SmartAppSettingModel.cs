@@ -13,6 +13,7 @@ public class SmartAppSettingModel
     /// </summary>
     public string FhirServerUrl { get; set; }
     public string InferenceHostApi { get; set; }
+    public string AIResultPath { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier for the client application.

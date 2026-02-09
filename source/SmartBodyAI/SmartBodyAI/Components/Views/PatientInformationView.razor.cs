@@ -606,9 +606,17 @@ public partial class PatientInformationView
         ShowUploadDicomDialog = false;
         if (filename != null)
         {
-            imageVersion = DateTime.Now.Ticks.ToString();
-            string imageFilename = Path.GetFileName(filename.Replace(".dicm", ".png"));
-            image = Path.Combine(MagicObjectHelper.DicomWebPath, imageFilename);
+            // 隨機產生亂數，需要為10位數
+            var random = new Random();
+            randomNumberKey = random.NextInt64(1_000_000_000_000, 9_999_999_999_999).ToString() + random.NextInt64(1_000_000_000_000, 9_999_999_999_999).ToString();
+
+            imageVersion = randomNumberKey;
+            string imageOldFilename = Path.GetFileName(filename.Replace(".dicm", ".png"));
+            string imageNewFilename = $"{randomNumberKey}.png";
+            string sourceImagePath = Path.Combine(MagicObjectHelper.DicomImagePath, imageOldFilename);
+            string targetImagePath = Path.Combine(MagicObjectHelper.DicomImagePath, imageNewFilename);
+            File.Copy(sourceImagePath, targetImagePath, true);
+            image = Path.Combine(MagicObjectHelper.DicomWebPath, imageNewFilename);
         }
         else
         {
@@ -665,7 +673,7 @@ public partial class PatientInformationView
             return;
         }
 
-        NavigationManager.NavigateTo($"/AIResult");
+        NavigationManager.NavigateTo($"/AIResult/{randomNumberKey}");
     }
 
     async System.Threading.Tasks.Task OnAIInferenceAsync()
@@ -682,9 +690,6 @@ public partial class PatientInformationView
         cts = new CancellationTokenSource();
 
         #region 產生要推論的壓縮檔案
-        // 隨機產生亂數，需要為10位數
-        var random = new Random();
-        randomNumberKey = random.NextInt64(1_000_000_000_000, 9_999_999_999_999).ToString() + random.NextInt64(1_000_000_000_000, 9_999_999_999_999).ToString();
 
         PatientDataModel patientDataModel = new PatientDataModel()
         {

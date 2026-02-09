@@ -1,9 +1,11 @@
-﻿@page "/AIResult"
+﻿@page "/AIResult/{RandomCode}"
 @layout EmptyLayout
 
 <PageTitle>巨明生醫 CanWellBeing</PageTitle>
 
-<AIResultView />
+<AIResultView RandomCode="@RandomCode" />
 
 @code {
+    [Parameter]
+    public string RandomCode { get; set; }
 }

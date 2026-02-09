@@ -11,4 +11,5 @@ public class SettingModel
     public string UploadDicomPath { get; set; }
     public string UploadDicomTempPath { get; set; }
     public string DicomImagePath { get; set; }
+    public string AIResultPath { get; set; }
 }
