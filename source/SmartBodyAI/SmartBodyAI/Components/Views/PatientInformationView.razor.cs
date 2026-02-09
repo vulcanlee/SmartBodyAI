@@ -702,7 +702,7 @@ public partial class PatientInformationView
             Directory.Delete(passApiDataPath, true);
         }
         Directory.CreateDirectory(passApiDataPath);
-        string patientDataFilename = Path.Combine(passApiDataPath, $"PatientDat.json");
+        string patientDataFilename = Path.Combine(passApiDataPath, $"PatientData.json");
         await System.IO.File.WriteAllTextAsync(patientDataFilename, patientDataJson);
 
         string sourceDicomPath = Path.Combine(MagicObjectHelper.UploadDicomPath, $"{SubjectNo}.dicm");
@@ -721,7 +721,11 @@ public partial class PatientInformationView
         #region 準備上傳
         string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
         string uploadUrl = $"{InferenceHostApi}/dicompack";
-        HttpClient httpClient = new HttpClient();
+        HttpClientHandler handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
+        };
+        HttpClient httpClient = new HttpClient(handler);
         MultipartFormDataContent form = new MultipartFormDataContent();
         byte[] zipBytes = await System.IO.File.ReadAllBytesAsync(zipFilename);
         ByteArrayContent byteContent = new ByteArrayContent(zipBytes);
