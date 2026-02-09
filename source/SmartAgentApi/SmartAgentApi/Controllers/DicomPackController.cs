@@ -1,12 +1,15 @@
 using AIAgent.Models;
 using AIAgent.Services;
+using CTMS.Business.Services.ClinicalInformation;
 using CTMS.DataModel.Dtos;
 using CTMS.DataModel.Models.AIAgent;
 using CTMS.DataModel.Models.ClinicalInformation;
+using CTMS.Share.Extensions;
 using CTMS.Share.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using SmartAgentApi.Models;
 using System.IO.Compression;
 using System.Text.Json.Serialization;
 
@@ -18,13 +21,15 @@ namespace SmartAgentApi.Controllers
     {
         private Agentsetting agentsetting;
         private readonly AgentService agentService;
+        private readonly AIIntegrateService aiIntegrateService;
 
         public DicomPackController(
             IOptions<Agentsetting> agentsettingOptions,
-            AgentService agentService)
+            AgentService agentService, AIIntegrateService aIIntegrateService)
         {
             this.agentsetting = agentsettingOptions.Value;
             this.agentService = agentService;
+            this.aiIntegrateService = aIIntegrateService;
         }
         /// <summary>
         /// 上傳一個 ZIP 檔案並解壓縮到伺服端暫存資料夾。
@@ -130,7 +135,7 @@ namespace SmartAgentApi.Controllers
             string completeQueuePath = Path.Combine(queueFolderPath, completeQueueName);
             string downloadPath = Path.Combine(completeQueuePath, checkKey);
 
-            if(Directory.Exists(zipDirectoryPath) == false)
+            if (Directory.Exists(zipDirectoryPath) == false)
             {
                 Directory.CreateDirectory(zipDirectoryPath);
             }
@@ -145,6 +150,34 @@ namespace SmartAgentApi.Controllers
                 });
             }
 
+            #region 產生分析結果
+            BodyAIResult bodyAIResult = new BodyAIResult();
+            string bodyAIResultPath = Path.Combine(downloadPath, "BodyAIResult.json");
+            string patientDataPath = Path.Combine(downloadPath, "PatientData.json");
+            string content = await System.IO.File.ReadAllTextAsync(patientDataPath);
+            PatientAIInfo patientAIInfo = JsonConvert.DeserializeObject<PatientAIInfo>(content);
+
+            InputCsvModel inputCsvModel = await aiIntegrateService.GetInputCsv(checkKey, completeQueuePath);
+            string imageRootPath = completeQueuePath;
+            var keyName = checkKey;
+            // http://localhost:5272/UploadFiles/202509111436154559/Phase1Result/202509111436154559.png
+            var imageFilename = $"{keyName}/Phase1Result/{keyName}.png";
+            bodyAIResult.ImagePng = imageFilename;
+            bodyAIResult.SMD骨骼肌密度 = inputCsvModel.Total_SMD.ToFloat().ToString("F2");
+            bodyAIResult.IMAT肌間肌肉脂肪組織 = inputCsvModel.Total_ImatA.ToFloat().ToString("F2");
+            bodyAIResult.LAMA低密度肌肉區域 = inputCsvModel.Total_LamaA.ToFloat().ToString("F2");
+            bodyAIResult.NAMA正常密度肌肉區域 = inputCsvModel.Total_NamaA.ToFloat().ToString("F2");
+            // SMA : SMA (Skeletal Muscle Area) TotalLamaA + TotalNamaA 骨骼肌面積
+            bodyAIResult.SMA骨骼肌面積 = (inputCsvModel.Total_LamaA.ToFloat() + inputCsvModel.Total_NamaA.ToFloat()).ToString("F2");
+            //SMI= LAMA+NAMA/(身高的平方(公尺))
+            bodyAIResult.SMI骨骼肌指標 = ((inputCsvModel.Total_LamaA.ToFloat() + inputCsvModel.Total_NamaA.ToFloat())
+                / (patientAIInfo.Height.ToFloat() / 100.0 * patientAIInfo.Height.ToFloat() / 100.0)).ToString("F2");
+
+            bodyAIResult.Myosteatosis肌肉脂肪變性 = (inputCsvModel.Total_ImatA.ToFloat() + inputCsvModel.Total_LamaA.ToFloat()).ToString("F2");
+
+            string bodyAIResultJson = JsonConvert.SerializeObject(bodyAIResult, Formatting.Indented);
+            await System.IO.File.WriteAllTextAsync(bodyAIResultPath, bodyAIResultJson);
+            #endregion
 
             string zipFilename = Path.Combine(zipDirectoryPath, $"{checkKey}.zip");
             if (System.IO.File.Exists(zipFilename))
@@ -217,7 +250,7 @@ namespace SmartAgentApi.Controllers
         {
             string result = "";
 
-            string filenameData = "PatientDat.json";
+            string filenameData = "PatientData.json";
             string filenameDicom = "L3CT.dicm";
             string pathSourceData = Path.Combine(extractPath, filenameData);
             string pathSourceDicom = Path.Combine(extractPath, filenameDicom);

@@ -1,6 +1,7 @@
 
 using AIAgent.Models;
 using AIAgent.Services;
+using CTMS.Business.Services.ClinicalInformation;
 using CTMS.DataModel.Models;
 using CTMS.Share.Helpers;
 using SyncExcel.Services;
@@ -25,6 +26,7 @@ namespace SmartAgentApi
             builder.Services.AddScoped<Phase1Phase2Service>();
             builder.Services.AddScoped<DirectoryHelperService>();
             builder.Services.AddScoped<AgentService>();
+            builder.Services.AddScoped<AIIntegrateService>();
 
             builder.Services.AddScoped<CurrentProject>();
             builder.Services.AddHttpContextAccessor();

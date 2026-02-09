@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\CTMS\src\CTMS\AIAgent.Business\AIAgent.Business.csproj" />
+	  <ProjectReference Include="..\..\..\..\CTMS\src\CTMS\AIAgent.Business\AIAgent.Business.csproj" />
+	  <ProjectReference Include="..\..\..\..\CTMS\src\CTMS\CTMS.Business\CTMS.Business.csproj" />
   </ItemGroup>
 
   <ItemGroup>
