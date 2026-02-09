@@ -23,9 +23,9 @@ public partial class AIResultView
     {
         if (firstRender)
         {
-            string AIResultPath = SmartAppSettingService.Data.AIResultPath;
-            string AIResultZipFile = Path.Combine(AIResultPath, $"{RandomCode}.zip");
-            string AIResultExtractPath = Path.Combine(AIResultPath, $"{RandomCode}");
+            string AIResultPath = MagicObjectHelper.UploadDicomTempPath;
+            string AIResultZipFile = Path.Combine(AIResultPath, $"{RandomCode}_result.zip");
+            string AIResultExtractPath = Path.Combine(AIResultPath, $"{RandomCode}_result");
             if (Directory.Exists(AIResultExtractPath) == false)
             {
                 Directory.CreateDirectory(AIResultExtractPath);

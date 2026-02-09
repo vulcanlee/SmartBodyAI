@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -763,6 +764,9 @@ public partial class PatientInformationView
             string downloadUrl = $"{InferenceHostApi}/dicompack/Download/{randomNumberKey}";
             HttpClient httpClient = new HttpClient();
 
+            int totalRetry = 0;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             while (true)
             {
                 if (cts.IsCancellationRequested == true) break;
@@ -770,7 +774,22 @@ public partial class PatientInformationView
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(2));
+                    await InvokeAsync(async () =>
+                    {
+                        string cost = $"已經等待了 {stopwatch.Elapsed.TotalSeconds} 秒";
+                        await Notice.Open(new NotificationConfig()
+                        {
+                            Message = "確認中",
+                            Key = Guid.NewGuid().ToString(),
+                            Description = $"正在輪詢 AI 推論服務，確認是否已經完成 AI 推論，已經嘗試了 {++totalRetry} 次，等待了 {stopwatch.Elapsed.TotalSeconds} 秒",
+                            NotificationType = NotificationType.Warning,
+                            Duration = 2.5,
+                        });
+
+                        StateHasChanged();
+                    });
+
+                    await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(3));
                     continue;
                 }
 
