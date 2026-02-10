@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AntDesign;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Newtonsoft.Json;
 using SmartBodyAI.Helpers;
@@ -13,16 +14,41 @@ public partial class AIResultView
     public string RandomCode { get; set; }
     [Inject]
     public SmartAppSettingService SmartAppSettingService { get; set; }
+    [Inject]
+    public ILogger<AIResultView> logger { get; set; }
+    [Inject]
+    public INotificationService Notice { get; init; }
+
+    bool hasRandomCode = false;
     string image1 = "";
     string imageVersion1 = DateTime.Now.Ticks.ToString();
     string image2 = "";
     string imageVersion2 = DateTime.Now.Ticks.ToString();
     AIResultModel aiResultModel = new AIResultModel();
 
+
+    override protected void OnInitialized()
+    {
+        if(string.IsNullOrEmpty(RandomCode))
+        {
+            logger.LogWarning("RandomCode 必須要提供，不能是空白或者空值.");
+            hasRandomCode = false;
+        }
+        else
+        {
+            hasRandomCode = true;
+        }
+    }
+
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            if(hasRandomCode == false)
+            {
+                return;
+            }
+
             string AIResultPath = MagicObjectHelper.UploadDicomTempPath;
             string AIResultZipFile = Path.Combine(AIResultPath, $"{RandomCode}_result.zip");
             string AIResultExtractPath = Path.Combine(AIResultPath, $"{RandomCode}_result");
@@ -31,6 +57,25 @@ public partial class AIResultView
                 Directory.CreateDirectory(AIResultExtractPath);
             }
             string BodyAIResultJsonPath = Path.Combine(AIResultExtractPath, "BodyAIResult.json");
+
+            if(File.Exists(BodyAIResultJsonPath) == false)
+            {
+                string message = $"AI 結果的 BodyAIResult.json 檔案不存在，請確認 AI 是否正確執行，或者檔案是否正確上傳。";
+                logger.LogWarning(message);
+
+                await Notice.Open(new NotificationConfig()
+                {
+                    Message = "存取 FHIR 資源",
+                    Key = Guid.NewGuid().ToString(),
+                    Description = $"{message}",
+                    NotificationType = NotificationType.Error,
+                    Duration = 5
+                });
+
+                StateHasChanged();
+                return;
+            }
+
             string content = System.IO.File.ReadAllText(BodyAIResultJsonPath);
             BodyAIResult bodyAIResult = JsonConvert.DeserializeObject<BodyAIResult>(content);
 

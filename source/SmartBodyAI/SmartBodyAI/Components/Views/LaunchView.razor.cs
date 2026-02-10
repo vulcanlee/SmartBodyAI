@@ -24,8 +24,11 @@ public partial class LaunchView
     public SmartAppSettingService SmartAppSettingService { get; init; }
     [Inject]
     public OAuthStateStoreService OAuthStateStoreService { get; init; }
+    [Inject]
+    public ILogger<LaunchView> logger { get; set; }
 
     public string ProcessingMessage { get; set; }
+    string logMessage;
 
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
@@ -34,17 +37,27 @@ public partial class LaunchView
         {
             try
             {
-                await System.Threading.Tasks.Task.Delay(4000);
-                await UpdateMessage("系統初始化中...");
+                await System.Threading.Tasks.Task.Delay(500);
+
+                logMessage = $"LaunchView OnAfterRenderAsync: Iss={Iss}, LaunchCode={LaunchCode}";
+                logger.LogInformation(logMessage);
+                logMessage = "系統初始化中...";
+                await UpdateMessage(logMessage);
                 KeepLaunchIss();
-                await UpdateMessage("從 FHIR 伺服器取得 Metadata 資訊...");
+                logMessage = $"從 FHIR 伺服器取得 Metadata 資訊...";
+                await UpdateMessage(logMessage);
                 var success = await GetMetadataAsync();
                 var authUrl = string.Empty;
+
                 if (success)
                 {
-                    await UpdateMessage("正在處理授權請求，請稍候...");
+                    logMessage = $"成功從 FHIR 伺服器取得 Metadata 資訊，並解析出 OAuth 端點 URL。";
+                    logger.LogInformation(logMessage);
+                    logMessage = "正在處理授權請求，請稍候...";
+                    await UpdateMessage(logMessage);
                     authUrl = await GetAuthorizeUrlAsync();
-                    await UpdateMessage($"準備重新導向",$"取得重新導向到授權伺服器 URL:{authUrl}", NotificationType.Warning, 3.0);
+                    logMessage = $"取得重新導向到授權伺服器 URL: {authUrl}";
+                    await UpdateMessage($"準備重新導向", logMessage, NotificationType.Warning, 3.0);
                 }
                 else
                 {
@@ -52,7 +65,7 @@ public partial class LaunchView
                 }
 
                 await System.Threading.Tasks.Task.Delay(500);
-                await UpdateMessage($"重新導向到授權伺服器");
+                await UpdateMessage($"重新導向到授權伺服器 : {authUrl}");
                 await System.Threading.Tasks.Task.Delay(1000);
                 NavigationManager.NavigateTo(authUrl);
             }
@@ -65,11 +78,24 @@ public partial class LaunchView
 
     async System.Threading.Tasks.Task UpdateMessage(string description)
     {
-        await UpdateMessage("取得 OAuth2 授權碼", description, NotificationType.Info, 0.5);
+        await UpdateMessage("取得 OAuth2 授權碼", description, NotificationType.Info, 1);
     }
 
     async System.Threading.Tasks.Task UpdateMessage(string message, string description, NotificationType notificationType, double? duration)
     {
+        if (notificationType == NotificationType.Error)
+        {
+            logger.LogError($"{message} - {description}");
+        }
+        else if (notificationType == NotificationType.Warning)
+        {
+            logger.LogWarning($"{message} - {description}");
+        }
+        else
+        {
+            logger.LogInformation($"{message} - {description}");
+        }
+
         var task = Notice.Open(new NotificationConfig()
         {
             Message = message,
@@ -178,7 +204,7 @@ public partial class LaunchView
 
         await OAuthStateStoreService.SaveAsync<SmartAppSettingModel>(state, SmartAppSettingService.Data, TimeSpan.FromMinutes(10));
 
-        Console.WriteLine($"Generated state: {SmartAppSettingService.Data.State}");
+        //Console.WriteLine($"Generated state: {SmartAppSettingService.Data.State}");
 
         // 建立 SMART on FHIR OAuth2 授權請求 URL，包含以下標準參數:
         // - response_type: 指定 OAuth2 流程類型為 "code" (授權碼流程)

@@ -24,6 +24,8 @@ public partial class PatientInformationView
     [Inject]
     public NavigationManager NavigationManager { get; init; }
     [Inject]
+    public ILogger<PatientInformationView> logger { get; set; }
+    [Inject]
     public INotificationService Notice { get; init; }
     [Inject]
     public SettingService SettingService { get; init; }
@@ -41,7 +43,7 @@ public partial class PatientInformationView
     string SubjectNo = "";
     string image = "";
     string imageVersion = DateTime.Now.Ticks.ToString();
-
+    string logMessage;
     ProcessModel processModel = new ProcessModel();
 
     string randomNumberKey = "";
@@ -54,7 +56,8 @@ public partial class PatientInformationView
             if (string.IsNullOrEmpty(Code) || string.IsNullOrEmpty(State))
             {
                 StateHasChanged();
-                await UpdateMessage("發現錯誤：Code 與 State 參數發現問題，無法繼續往下執行 !");
+                logMessage = "發現錯誤：Code 與 State 參數發現問題，無法繼續往下執行 !";
+                await UpdateMessage(logMessage);
                 StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
                 NavigationManager.NavigateTo("/");
@@ -64,27 +67,30 @@ public partial class PatientInformationView
             processModel.Reset();
             processModel.Build();
 
-            await UpdateMessage("更新取得的授權碼與狀態碼...");
+            logMessage = "更新取得的授權碼與狀態碼...";
+            await UpdateMessage(logMessage);
             await SetAuthCodeAsync();
-            await UpdateMessage("透過授權碼，取得 Access Token...");
+            logMessage = $"透過授權碼，取得 Access Token...";
+            await UpdateMessage(logMessage);
             smartResponse = await GetAccessTokenAsync();
             if (string.IsNullOrEmpty(smartResponse.AccessToken))
             {
-                await UpdateMessage("取得 Access Token 失敗，無法繼續往下執行 !");
+                logMessage = "取得 Access Token 失敗，無法繼續往下執行 !";
+                await UpdateMessage(logMessage);
                 StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
                 NavigationManager.NavigateTo("/");
                 return;
             }
             isAccessTokenReady = true;
-            await UpdateMessage($"已經取得 Access Token : {smartResponse.AccessToken}");
+            logMessage = $"已經取得 Access Token : {smartResponse.AccessToken}";
+            await UpdateMessage(logMessage);
             //await GetLastYearOrdersAsync(smartResponse);
             StateHasChanged();
 
             processModel.ActiveClass[0] = MagicObjectHelper.ActiveClassName;
             processModel.Build();
             StateHasChanged();
-
         }
     }
 
@@ -109,20 +115,23 @@ public partial class PatientInformationView
         patientInformation.Reset();
         StateHasChanged();
 
-        await UpdateMessage($"取得病患的基本資訊...");
+        logMessage = $"取得病患的基本資訊...";
+        await UpdateMessage(logMessage);
         patientId = patientMrm;
         var found = await GetPatientAsync(smartResponse);
         if (!found)
         {
+            logger.LogWarning($"病患的 {patientId} 找不到!");
             return;
         }
         SubjectNo = patientInformation.Id;
 
         StateHasChanged();
 
-        await UpdateMessage($"取得此病患的身高與體重...");
+        logMessage = $"取得病患的基本資訊完成，取得此病患的身高與體重...";
+        await UpdateMessage(logMessage);
         await GetHeightAndWeightAsync(smartResponse);
-        await UpdateMessage($"OK...");
+        await UpdateMessage($"已經完成取得 取得病患的基本資訊 與 此病患的身高與體重...");
 
         processModel.ActiveClass[1] = MagicObjectHelper.ActiveClassName;
         processModel.Build();
@@ -146,7 +155,7 @@ public partial class PatientInformationView
         SmartAppSettingModelItem.State = State;
 
         SmartAppSettingService.UpdateSetting(SmartAppSettingModelItem);
-        Console.WriteLine($"Retrive state: {SmartAppSettingService.Data.State}");
+        //Console.WriteLine($"Retrive state: {SmartAppSettingService.Data.State}");
     }
 
     /// <summary>
@@ -181,15 +190,18 @@ public partial class PatientInformationView
 
         if (!response.IsSuccessStatusCode)
         {
+            logger.LogWarning($"取得 Access Token 失敗，HTTP Status Code: {(int)response.StatusCode}");
             smartResponse = new();
             return smartResponse;
         }
 
         string json = await response.Content.ReadAsStringAsync();
 
-        System.Console.WriteLine($"----- Authorization Response -----");
-        System.Console.WriteLine(json);
-        System.Console.WriteLine($"----- Authorization Response -----");
+        logger.LogInformation($"取得 Access Token 的回應內容: {json}");
+
+        //System.Console.WriteLine($"----- Authorization Response -----");
+        //System.Console.WriteLine(json);
+        //System.Console.WriteLine($"----- Authorization Response -----");
 
         smartResponse = JsonSerializer.Deserialize<SmartResponse>(json);
         return smartResponse;
@@ -579,6 +591,8 @@ public partial class PatientInformationView
 
     async System.Threading.Tasks.Task UpdateMessage(string message)
     {
+        logger.LogInformation($"存取 FHIR 資源 - {message}");
+
         await Notice.Open(new NotificationConfig()
         {
             Message = "存取 FHIR 資源",
@@ -592,6 +606,8 @@ public partial class PatientInformationView
 
     async System.Threading.Tasks.Task UpdateMessageError(string message)
     {
+        logger.LogError($"操作上發生問題 - {message}");
+   
         await Notice.Open(new NotificationConfig()
         {
             Message = "操作上發生問題",
@@ -683,6 +699,12 @@ public partial class PatientInformationView
         if (processModel.ActiveClass[2] != MagicObjectHelper.ActiveClassName)
         {
             await UpdateMessageError($"尚未完成上傳 DICOM 檔案，所以無法進行 AI 推論作業，操作失敗");
+            return;
+        }
+
+        if(string.IsNullOrEmpty(patientInformation.HeightValue) || string.IsNullOrEmpty(patientInformation.WeightValue))
+        {
+            await UpdateMessageError($"尚未取得病患的身高與體重資訊，所以無法進行 AI 推論作業，操作失敗");
             return;
         }
 

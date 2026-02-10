@@ -1,55 +1,66 @@
-﻿    <!-- Header -->
-<header>
-    <div class="header-container">
-        <div class="header-left">
-            <img src="img/jm_logo.png" alt="巨明生醫">
-        </div>
-        <h1 class="header-title">最智慧的非侵入肌肉品質定量系統</h1>
-        <button class="btn-back" onclick="history.back()">←</button>
+﻿@if (hasRandomCode == false)
+{
+    <div class="">
+        <p class="h1">沒有發現結果代碼</p>
     </div>
-</header>
-
-<!-- Main Content -->
-<main class="main-content">
-    <!-- DICOM Images -->
-    <div class="images-container">
-        <div class="dicom-image">
-            <img src="@($"{image1}?v={imageVersion1}")" alt="DICOM Image 1">
-        </div>
-        <div class="dicom-image">
-            <img src="@($"{image2}?v={imageVersion2}")" alt="DICOM Image 2">
-        </div>
-    </div>
-
-    <!-- Details Table -->
-    <div class="details-container">
-        <div class="details-table">
-            <div class="table-header">
-                <h2 class="table-title">詳細內容</h2>
+}
+else
+{
+    <div>
+        <!-- Header -->
+        <header>
+            <div class="header-container">
+                <div class="header-left">
+                    <img src="img/jm_logo.png" alt="巨明生醫">
+                </div>
+                <h1 class="header-title">最智慧的非侵入肌肉品質定量系統</h1>
+                <button class="btn-back" onclick="history.back()">←</button>
             </div>
-            <table class="table-body">
-                <tr>
-                    <td>骨骼肌指標(SMI)</td>
-                    <td>@aiResultModel.骨骼肌指標SMI</td>
-                    <td>低密度肌肉區域(LAMA)</td>
-                    <td>@aiResultModel.低密度肌肉區域LAMA (平方公分)</td>
-                </tr>
-                <tr>
-                    <td>骨骼肌密度(SMD)</td>
-                    <td>@aiResultModel.骨骼肌密度SMD (HU)</td>
-                    <td>正常密度肌肉區域(NAMA)</td>
-                    <td>@aiResultModel.正常密度肌肉區域NAMA (平方公分)</td>
-                </tr>
-                <tr>
-                    <td>肌間/肌肉脂肪組織(IMAT)</td>
-                    <td>@aiResultModel.肌間肌肉脂肪組織IMAT (平方公分)</td>
-                    <td>肌肉脂肪變性(Myosteatosis)</td>
-                    <td>@aiResultModel.肌肉脂肪變性Myosteatosis (平方公分)</td>
-                </tr>
-            </table>
-        </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- DICOM Images -->
+            <div class="images-container">
+                <div class="dicom-image">
+                    <img src="@($"{image1}?v={imageVersion1}")" alt="DICOM Image 1">
+                </div>
+                <div class="dicom-image">
+                    <img src="@($"{image2}?v={imageVersion2}")" alt="DICOM Image 2">
+                </div>
+            </div>
+
+            <!-- Details Table -->
+            <div class="details-container">
+                <div class="details-table">
+                    <div class="table-header">
+                        <h2 class="table-title">詳細內容</h2>
+                    </div>
+                    <table class="table-body">
+                        <tr>
+                            <td>骨骼肌指標(SMI)</td>
+                            <td>@aiResultModel.骨骼肌指標SMI</td>
+                            <td>低密度肌肉區域(LAMA)</td>
+                            <td>@aiResultModel.低密度肌肉區域LAMA (平方公分)</td>
+                        </tr>
+                        <tr>
+                            <td>骨骼肌密度(SMD)</td>
+                            <td>@aiResultModel.骨骼肌密度SMD (HU)</td>
+                            <td>正常密度肌肉區域(NAMA)</td>
+                            <td>@aiResultModel.正常密度肌肉區域NAMA (平方公分)</td>
+                        </tr>
+                        <tr>
+                            <td>肌間/肌肉脂肪組織(IMAT)</td>
+                            <td>@aiResultModel.肌間肌肉脂肪組織IMAT (平方公分)</td>
+                            <td>肌肉脂肪變性(Myosteatosis)</td>
+                            <td>@aiResultModel.肌肉脂肪變性Myosteatosis (平方公分)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
-</main>
+}
 
 @code {
 

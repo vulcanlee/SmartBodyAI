@@ -20,14 +20,17 @@ namespace SmartAgentApi.Controllers
     public class DicomPackController : ControllerBase
     {
         private Agentsetting agentsetting;
+        private readonly ILogger<DicomPackController> logger;
         private readonly AgentService agentService;
         private readonly AIIntegrateService aiIntegrateService;
+        string logMessage = string.Empty;
 
-        public DicomPackController(
+        public DicomPackController(ILogger<DicomPackController> logger,
             IOptions<Agentsetting> agentsettingOptions,
             AgentService agentService, AIIntegrateService aIIntegrateService)
         {
             this.agentsetting = agentsettingOptions.Value;
+            this.logger = logger;
             this.agentService = agentService;
             this.aiIntegrateService = aIIntegrateService;
         }
@@ -41,17 +44,26 @@ namespace SmartAgentApi.Controllers
         {
             if (file == null || file.Length == 0)
             {
+                logMessage = $"未收到檔案或檔案內容為空。";
+                logger.LogWarning(logMessage);
                 return BadRequest("未收到檔案或檔案內容為空。");
             }
 
-            // 確認副檔名為 .zip
+            logger.LogInformation($"收到檔案：{file.FileName}，大小：{file.Length} bytes");
+
+            #region 確認副檔名為 .zip
             var ext = Path.GetExtension(file.FileName);
             if (!string.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase))
             {
+                logMessage = $"只接受 .zip 檔案，收到的檔案副檔名為 {ext}。";
+                logger.LogWarning(logMessage);
                 return BadRequest("只接受 .zip 檔案。");
             }
+            #endregion
 
-            // 準備暫存目錄與解壓縮目錄
+            #region 準備暫存目錄與解壓縮目錄
+            logMessage = "準備暫存目錄與解壓縮目錄";
+            logger.LogWarning(logMessage);
             string UploadDicomTempPath = $"C:\\temp\\SmartBodyAI\\TempUploads";
             if (!Directory.Exists(UploadDicomTempPath))
             {
@@ -69,8 +81,11 @@ namespace SmartAgentApi.Controllers
             var extractPath = Path.Combine(baseTempPath, workId);
 
             Directory.CreateDirectory(extractPath);
+            #endregion
 
-            // 將上傳的 zip 存到暫存路徑
+            #region 將上傳的 zip 存到暫存路徑
+            logMessage = $"將上傳的 zip 存到暫存路徑 {uploadZipPath}";
+            logger.LogInformation(logMessage);
             await using (var fs = System.IO.File.Create(uploadZipPath))
             {
                 await file.CopyToAsync(fs);
@@ -78,14 +93,14 @@ namespace SmartAgentApi.Controllers
 
             try
             {
-                // 解壓縮到 extractPath
+                logger.LogInformation($"開始解壓縮 {uploadZipPath} 到 {extractPath}");
                 ZipFile.ExtractToDirectory(uploadZipPath, extractPath);
 
-                // TODO: 在這裡處理解壓縮後的 DICOM 檔案 (例如：呼叫 service、寫入 DB、push 到 AI 等)
-                // 例如：_pushToAiService.ProcessDicomPack(extractPath);
-
+                logger.LogInformation($"解壓縮完成，開始處理 DICOM 檔案並推送到 AI。");
                 await PushToAICheck(extractPath);
 
+                logMessage = $"上傳並解壓縮成功，工作 ID: {workId}，解壓縮路徑: {extractPath}";
+                logger.LogInformation(logMessage);
                 return Ok(new
                 {
                     Message = "上傳並解壓縮成功。",
@@ -95,11 +110,12 @@ namespace SmartAgentApi.Controllers
             }
             catch (InvalidDataException)
             {
+                logger.LogError($"檔案 {uploadZipPath} 不是有效的 ZIP 格式。");
                 return BadRequest("檔案不是有效的 ZIP 格式。");
             }
             catch (Exception ex)
             {
-                // 實務上建議記錄 log
+                logger.LogError(ex, $"處理 ZIP 檔案時發生錯誤：{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     Message = "處理 ZIP 檔案時發生錯誤。",
@@ -122,6 +138,7 @@ namespace SmartAgentApi.Controllers
                     // 忽略刪除失敗
                 }
             }
+            #endregion
         }
 
 
@@ -129,6 +146,7 @@ namespace SmartAgentApi.Controllers
         [Route("Download/{checkKey}")]
         public async Task<IActionResult> Download(string checkKey)
         {
+            logger.LogInformation($"收到下載請求，checkKey: {checkKey}");
             string zipDirectoryPath = agentsetting.DicomFolderPath.Replace("Dicom", "Temp");
             string queueFolderPath = agentsetting.QueueFolderPath;
             string completeQueueName = agentsetting.CompleteQueueName;
@@ -140,9 +158,10 @@ namespace SmartAgentApi.Controllers
                 Directory.CreateDirectory(zipDirectoryPath);
             }
 
-            // 將 downloadPath 下所有檔案與目錄，都壓縮成為 zip 檔案
+            logger.LogInformation($"將 downloadPath 下所有檔案與目錄，都壓縮成為 zip 檔案");
             if (Directory.Exists(downloadPath) == false)
             {
+                logger.LogWarning($"下載路徑 {downloadPath} 不存在，可能尚未完成 AI 推論。");
                 return NotFound(new
                 {
                     Status = false,
@@ -151,12 +170,14 @@ namespace SmartAgentApi.Controllers
             }
 
             #region 產生分析結果
+            logger.LogInformation($"開始產生分析結果 JSON 檔案");
             BodyAIResult bodyAIResult = new BodyAIResult();
             string bodyAIResultPath = Path.Combine(downloadPath, "BodyAIResult.json");
             string patientDataPath = Path.Combine(downloadPath, "PatientData.json");
             string content = await System.IO.File.ReadAllTextAsync(patientDataPath);
             PatientAIInfo patientAIInfo = JsonConvert.DeserializeObject<PatientAIInfo>(content);
 
+            logger.LogInformation($"從AI推論的結果 csv 檔案，讀取 Phase3Result > input.csv 內容");
             InputCsvModel inputCsvModel = await aiIntegrateService.GetInputCsv(checkKey, completeQueuePath);
             string imageRootPath = completeQueuePath;
             var keyName = checkKey;
@@ -176,6 +197,7 @@ namespace SmartAgentApi.Controllers
             bodyAIResult.Myosteatosis肌肉脂肪變性 = (inputCsvModel.Total_ImatA.ToFloat() + inputCsvModel.Total_LamaA.ToFloat()).ToString("F2");
 
             string bodyAIResultJson = JsonConvert.SerializeObject(bodyAIResult, Formatting.Indented);
+            logger.LogInformation($"將分析結果寫入 JSON 檔案 {bodyAIResultPath}");
             await System.IO.File.WriteAllTextAsync(bodyAIResultPath, bodyAIResultJson);
             #endregion
 
@@ -184,9 +206,10 @@ namespace SmartAgentApi.Controllers
             {
                 System.IO.File.Delete(zipFilename);
             }
+            logger.LogInformation($"將 {downloadPath} 下的所有檔案與目錄壓縮成 zip 檔案 {zipFilename}");
             System.IO.Compression.ZipFile.CreateFromDirectory(downloadPath, zipFilename);
 
-            // 讀取壓縮檔並回傳
+            logger.LogInformation($"準備將 zip 檔案 {zipFilename} 送回給前端下載");
             var fileBytes = await System.IO.File.ReadAllBytesAsync(zipFilename);
             var downloadFileName = $"{checkKey}.zip";
             const string contentType = "application/zip";
@@ -198,6 +221,7 @@ namespace SmartAgentApi.Controllers
         [Route("CheckResult/{checkKey}")]
         public async Task<IActionResult> CheckResult(string checkKey)
         {
+            logger.LogInformation($"收到檢查結果請求，checkKey: {checkKey}");
             string queueFolderPath = agentsetting.QueueFolderPath;
             string completeQueueName = agentsetting.CompleteQueueName;
             string completeQueuePath = Path.Combine(queueFolderPath, completeQueueName);
@@ -205,6 +229,7 @@ namespace SmartAgentApi.Controllers
 
             if (Directory.Exists(checkPath) == false)
             {
+                logger.LogWarning($"檢查路徑 {checkPath} 不存在，可能尚未完成 AI 推論。");
                 return NotFound(new
                 {
                     Status = false,
@@ -215,6 +240,7 @@ namespace SmartAgentApi.Controllers
             var allDirectories = Directory.GetDirectories(checkPath);
             if (allDirectories == null)
             {
+                logger.LogWarning($"檢查路徑 {checkPath} 下沒有任何子目錄，可能尚未完成 AI 推論。");
                 return NotFound(new
                 {
                     Status = false,
@@ -230,6 +256,7 @@ namespace SmartAgentApi.Controllers
 
             if (isAllMatched)
             {
+                logger.LogInformation($"檢查路徑 {checkPath} 下的子目錄包含所有必要的階段結果，AI 推論已完成。");
                 return Ok(new
                 {
                     Status = true,
@@ -238,6 +265,7 @@ namespace SmartAgentApi.Controllers
             }
             else
             {
+                logger.LogWarning($"檢查路徑 {checkPath} 下的子目錄不包含所有必要的階段結果，可能尚未完成 AI 推論。");
                 return NotFound(new
                 {
                     Status = false,
@@ -248,6 +276,7 @@ namespace SmartAgentApi.Controllers
 
         public async Task PushToAICheck(string extractPath)
         {
+            logger.LogInformation($"開始將解壓縮後的 DICOM 檔案與患者資料推送到 AI，extractPath: {extractPath}");
             string result = "";
 
             string filenameData = "PatientData.json";
@@ -265,6 +294,7 @@ namespace SmartAgentApi.Controllers
             string sourcePath = pathSourceDicom;
             string targetPath = sourcePath.Replace(filenameDicom, $"{patientAIInfo.KeyName}.dicm");
 
+            logger.LogInformation($"將 DICOM 檔案從 {sourcePath} 複製到 {targetPath}");
             System.IO.File.Copy(sourcePath, targetPath, true);
             patientAIInfo.DicomFilename = targetPath;
 
