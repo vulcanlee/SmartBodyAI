@@ -26,7 +26,6 @@ public partial class AIResultView
     string imageVersion2 = DateTime.Now.Ticks.ToString();
     AIResultModel aiResultModel = new AIResultModel();
 
-
     override protected void OnInitialized()
     {
         if(string.IsNullOrEmpty(RandomCode))
@@ -76,12 +75,15 @@ public partial class AIResultView
                 return;
             }
 
+            logger.LogInformation($"開始讀取 AI 結果的 BodyAIResult.json 檔案，路徑: {BodyAIResultJsonPath}");
             string content = System.IO.File.ReadAllText(BodyAIResultJsonPath);
             BodyAIResult bodyAIResult = JsonConvert.DeserializeObject<BodyAIResult>(content);
 
             string sourceAIResultImagePath = Path.Combine(AIResultExtractPath, "Phase2Result", $"{RandomCode}_muscle5.png");
             string sourceAIResultImageFilename = $"{RandomCode}_muscle5.png";
             string targetImagePath = Path.Combine(MagicObjectHelper.DicomImagePath, sourceAIResultImageFilename);
+
+            logger.LogInformation($"開始複製 AI 結果的影像檔案，來源路徑: {sourceAIResultImagePath}，目標路徑: {targetImagePath}");
             File.Copy(sourceAIResultImagePath, targetImagePath, true);
 
             aiResultModel = new()

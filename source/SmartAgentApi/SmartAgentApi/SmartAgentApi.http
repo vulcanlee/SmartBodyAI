@@ -17,3 +17,7 @@ GET {{SmartAgentApi_HostAddress}}/dicompack/CheckResult/{{checkKey}}
 GET {{SmartAgentApi_HostAddress}}/dicompack/Download/{{checkKey}}
 
 ###
+
+GET {{SmartAgentApi_HostAddress}}/dicompack/CheckResult/{{checkKey}}
+
+###

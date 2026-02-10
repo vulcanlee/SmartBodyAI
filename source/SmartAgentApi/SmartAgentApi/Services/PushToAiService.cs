@@ -10,15 +10,19 @@ namespace SmartAgentApi.Services;
 
 public class PushToAiService
 {
+    private readonly ILogger<PushToAiService> logger;
     private readonly AgentService agentService;
     private readonly Agentsetting agentsetting;
 
-    public PushToAiService(AgentService agentService,
+    public PushToAiService(ILogger<PushToAiService> logger,
+        AgentService agentService,
         IOptions<Agentsetting> agentsettingOptions)
     {
+        this.logger = logger;
         this.agentService = agentService;
         this.agentsetting = agentsettingOptions.Value;
     }
+
     public async Task<PatientAIInfo> Push(PatientDataModel patientData, string dicomImage)
     {
         PatientAIInfo patientAIInfo = new()

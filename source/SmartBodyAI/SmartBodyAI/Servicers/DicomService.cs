@@ -19,13 +19,7 @@ public class DicomService
     {
         try
         {
-            // 在應用程式啟動時初始化
-            //new DicomSetupBuilder()
-            //  .RegisterServices(s => s.AddFellowOakDicom()
-            //  .AddTranscoderManager<FellowOakDicom.Imaging.NativeCodec.NativeTranscoderManager>())
-            //  .SkipValidation()
-            //  .Build();
-
+            logger.LogInformation("正在初始化 DICOM 套件...");
             new DicomSetupBuilder()
                 .RegisterServices(s =>
                 s.AddFellowOakDicom()
@@ -34,17 +28,11 @@ public class DicomService
           .SkipValidation()
           .Build();
 
-            //new DicomSetupBuilder()
-            //    .RegisterServices(s => s.AddFellowOakDicom()
-            //    .AddImageManager<ImageSharpImageManager>())
-            //    .SkipValidation()
-            //    .Build();
-
-            logger.LogInformation("DICOM 初始化成功");
+            logger.LogInformation("DICOM 套件 初始化成功");
         }
         catch (Exception ex)
         {
-            logger.LogError($"DICOM 初始化失敗: {ex.Message}");
+            logger.LogError($"DICOM 套件 初始化失敗: {ex.Message}");
             throw;
         }
     }
@@ -57,7 +45,7 @@ public class DicomService
             {
                 File.Delete(pngPath);
             }
-            logger.LogInformation($"開始轉換: {dicomPath}");
+            logger.LogInformation($"開始轉換 DICOM 為 PNG : {dicomPath}");
 
             // 開啟 DICOM 檔案
             var dicomFile = DicomFile.Open(dicomPath);
@@ -76,16 +64,12 @@ public class DicomService
                 sharpImage.Save(fileStream, new PngEncoder());
             }
 
-            logger.LogInformation($"轉換完成: {pngPath}");
-
-            // 顯示影像資訊
-            //DisplayImageInfo(dicomFile.Dataset, sharpImage);
+            logger.LogInformation($"轉換 PNG 完成: {pngPath}");
         }
         catch (Exception ex)
         {
-            logger.LogError($"轉換失敗: {ex.Message}");
+            logger.LogError($"轉換 PNG 失敗: {ex.Message}");
             throw;
         }
     }
-
 }
