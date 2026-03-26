@@ -749,21 +749,40 @@ public partial class PatientInformationView
         #region 準備上傳
         string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
         string uploadUrl = $"{InferenceHostApi}/dicompack";
+
+        logger.LogInformation($"準備上傳至: {uploadUrl}");
+        logger.LogInformation($"Zip 檔案路徑: {zipFilename}");
+        logger.LogInformation($"Zip 檔案大小: {new FileInfo(zipFilename).Length} bytes");
+
         HttpClientHandler handler = new HttpClientHandler
         {
             ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
         };
         HttpClient httpClient = new HttpClient(handler);
+        httpClient.Timeout = TimeSpan.FromMinutes(5); // 增加超時時間
+
         MultipartFormDataContent form = new MultipartFormDataContent();
         byte[] zipBytes = await System.IO.File.ReadAllBytesAsync(zipFilename);
         ByteArrayContent byteContent = new ByteArrayContent(zipBytes);
         form.Add(byteContent, "file", $"{randomNumberKey}.zip");
 
+        logger.LogInformation($"開始上傳，檔案大小: {zipBytes.Length} bytes");
         HttpResponseMessage response = await httpClient.PostAsync(uploadUrl, form);
 
         if (!response.IsSuccessStatusCode)
         {
-            await UpdateMessageError($"上傳失敗，無法進行 AI 推論作業，操作失敗");
+            string errorContent = string.Empty;
+            try
+            {
+                errorContent = await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                errorContent = "無法讀取錯誤內容";
+            }
+
+            logger.LogError($"上傳失敗 - HTTP Status: {(int)response.StatusCode}, 錯誤內容: {errorContent}");
+            await UpdateMessageError($"上傳失敗 (HTTP {(int)response.StatusCode})，無法進行 AI 推論作業。錯誤詳情: {errorContent}");
             return;
         }
 
