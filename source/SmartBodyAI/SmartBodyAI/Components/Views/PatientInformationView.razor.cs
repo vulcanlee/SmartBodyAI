@@ -7,6 +7,7 @@ using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 
 namespace SmartBodyAI.Components.Views;
@@ -83,7 +84,8 @@ public partial class PatientInformationView
                 return;
             }
             isAccessTokenReady = true;
-            logMessage = $"已經取得 Access Token : {smartResponse.AccessToken}";
+            logMessage = $"已經成功取得 Access Token。  {smartResponse.AccessToken}";
+            logMessage = $"已經成功取得 Access Token。";
             await UpdateMessage(logMessage);
             //await GetLastYearOrdersAsync(smartResponse);
             StateHasChanged();
@@ -165,6 +167,7 @@ public partial class PatientInformationView
     {
         if (string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
         {
+            logger.LogWarning("TokenUrl 未設定，無法交換 Access Token。");
             return new SmartResponse();
         }
 
@@ -174,8 +177,13 @@ public partial class PatientInformationView
                 { "grant_type", "authorization_code" },
                 { "code", SmartAppSettingService.Data.AuthCode },
                 { "redirect_uri", SmartAppSettingService.Data.RedirectUrl },
-                { "launch", SmartAppSettingService.Data.Launch }
+                { "client_id", SmartAppSettingService.Data.ClientId }
             };
+
+        if (!string.IsNullOrWhiteSpace(SmartAppSettingService.Data.Launch))
+        {
+            requestValues["launch"] = SmartAppSettingService.Data.Launch;
+        }
 
         HttpRequestMessage request = new HttpRequestMessage()
         {
@@ -184,26 +192,33 @@ public partial class PatientInformationView
             Content = new FormUrlEncodedContent(requestValues),
         };
 
+        if (!string.IsNullOrWhiteSpace(SmartAppSettingService.Data.ClientSecret))
+        {
+            var basicAuthValue = Convert.ToBase64String(
+                Encoding.UTF8.GetBytes($"{SmartAppSettingService.Data.ClientId}:{SmartAppSettingService.Data.ClientSecret}"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuthValue);
+        }
+
         HttpClient client = new HttpClient();
 
         HttpResponseMessage response = await client.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogWarning($"取得 Access Token 失敗，HTTP Status Code: {(int)response.StatusCode}");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            logger.LogWarning(
+                "取得 Access Token 失敗，HTTP Status Code: {StatusCode}, Response: {ResponseBody}",
+                (int)response.StatusCode,
+                responseBody);
             smartResponse = new();
             return smartResponse;
         }
 
         string json = await response.Content.ReadAsStringAsync();
 
-        logger.LogInformation($"取得 Access Token 的回應內容: {json}");
+        logger.LogInformation("已收到 Access Token 回應。");
 
-        //System.Console.WriteLine($"----- Authorization Response -----");
-        //System.Console.WriteLine(json);
-        //System.Console.WriteLine($"----- Authorization Response -----");
-
-        smartResponse = JsonSerializer.Deserialize<SmartResponse>(json);
+        smartResponse = JsonSerializer.Deserialize<SmartResponse>(json) ?? new SmartResponse();
         return smartResponse;
     }
 

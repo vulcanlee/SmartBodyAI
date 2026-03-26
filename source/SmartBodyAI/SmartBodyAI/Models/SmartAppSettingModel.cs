@@ -19,6 +19,7 @@ public class SmartAppSettingModel
     /// Gets or sets the unique identifier for the client application.
     /// </summary>
     public string ClientId { get; set; }
+    public string? ClientSecret { get; set; }
 
     /// <summary>
     /// 授權完成後 Smart App 的重新導向網址。

@@ -1,0 +1,251 @@
+{
+  "resourceType": "Bundle",
+  "id": "smartbodyai-test-bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:patient-001",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-001",
+        "identifier": [
+          {
+            "system": "https://smartbodyai.test/mrn",
+            "value": "SB-0001"
+          }
+        ],
+        "name": [
+          {
+            "use": "official",
+            "family": "Lin",
+            "given": [
+              "Demo"
+            ]
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1988-05-12"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:encounter-001",
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "encounter-001",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "AMB",
+          "display": "ambulatory"
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "period": {
+          "start": "2026-02-18T09:00:00+08:00",
+          "end": "2026-02-18T09:30:00+08:00"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:observation-height-001",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-height-001",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "8302-2",
+              "display": "Body height"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "encounter": {
+          "reference": "Encounter/encounter-001"
+        },
+        "effectiveDateTime": "2026-02-18T09:05:00+08:00",
+        "valueQuantity": {
+          "value": 165.2,
+          "unit": "cm",
+          "system": "http://unitsofmeasure.org",
+          "code": "cm"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:observation-weight-001",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-weight-001",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "vital-signs"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "29463-7",
+              "display": "Body weight"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "encounter": {
+          "reference": "Encounter/encounter-001"
+        },
+        "effectiveDateTime": "2026-02-18T09:06:00+08:00",
+        "valueQuantity": {
+          "value": 61.4,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:medication-request-001",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "medication-request-001",
+        "status": "active",
+        "intent": "order",
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "encounter": {
+          "reference": "Encounter/encounter-001"
+        },
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "313782",
+              "display": "Acetaminophen 500 MG Oral Tablet"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:service-request-001",
+      "resource": {
+        "resourceType": "ServiceRequest",
+        "id": "service-request-001",
+        "status": "active",
+        "intent": "order",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "24627-2",
+              "display": "CT Abdomen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "encounter": {
+          "reference": "Encounter/encounter-001"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:diagnostic-report-001",
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "diagnostic-report-001",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "18748-4",
+              "display": "Diagnostic imaging study"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "encounter": {
+          "reference": "Encounter/encounter-001"
+        },
+        "effectiveDateTime": "2026-02-18T09:20:00+08:00",
+        "result": [
+          {
+            "reference": "Observation/observation-height-001"
+          },
+          {
+            "reference": "Observation/observation-weight-001"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:imaging-study-001",
+      "resource": {
+        "resourceType": "ImagingStudy",
+        "id": "imaging-study-001",
+        "status": "available",
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "encounter": {
+          "reference": "Encounter/encounter-001"
+        },
+        "started": "2026-02-18T09:10:00+08:00",
+        "numberOfSeries": 1,
+        "numberOfInstances": 1,
+        "series": [
+          {
+            "uid": "1.2.826.0.1.3680043.8.498.20260218.1",
+            "number": 1,
+            "modality": {
+              "system": "http://dicom.nema.org/resources/ontology/DCM",
+              "code": "CT"
+            },
+            "description": "Demo abdominal CT",
+            "numberOfInstances": 1,
+            "instance": [
+              {
+                "uid": "1.2.826.0.1.3680043.8.498.20260218.1.1",
+                "sopClass": {
+                  "system": "urn:ietf:rfc:3986",
+                  "code": "urn:oid:1.2.840.10008.5.1.4.1.1.2"
+                },
+                "number": 1,
+                "title": "L3 slice"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

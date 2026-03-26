@@ -15,6 +15,7 @@ public class SmartAppSettingService
         Data.FhirServerUrl = data.FhirServerUrl;
         Data.RedirectUrl = data.RedirectUrl;
         Data.ClientId = data.ClientId;
+        Data.ClientSecret = data.ClientSecret;
         Data.ProcessDelayTimeInMilliSeconds = data.ProcessDelayTimeInMilliSeconds;
         Data.AuthorizationScope = data.AuthorizationScope;
         Data.InferenceHostApi = data.InferenceHostApi;
@@ -27,6 +28,7 @@ public class SmartAppSettingService
         Data.ProcessDelayTimeInMilliSeconds = model.ProcessDelayTimeInMilliSeconds;
         Data.FhirServerUrl = model.FhirServerUrl;
         Data.ClientId = model.ClientId;
+        Data.ClientSecret = model.ClientSecret;
         Data.RedirectUrl = model.RedirectUrl;
         Data.AuthCode = model.AuthCode;
         Data.ClientState = model.ClientState;

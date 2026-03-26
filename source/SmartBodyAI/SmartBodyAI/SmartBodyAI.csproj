@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+		<UserSecretsId>SmartBodyAI-fb08d114-d012-4444-894c-ce68e1fe9af1</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
