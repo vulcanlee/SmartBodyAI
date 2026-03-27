@@ -150,6 +150,7 @@ public partial class LaunchView
     /// </exception>
     public async Task<bool> GetMetadataAsync()
     {
+        logger.LogInformation($"Connecting to FHIR server at: {SmartAppSettingService.Data.FhirServerUrl}");
         Hl7.Fhir.Rest.FhirClient fhirClient = new Hl7.Fhir.Rest.FhirClient(SmartAppSettingService.Data.FhirServerUrl);
 
         CapabilityStatement capabilities = (CapabilityStatement)(await fhirClient.GetAsync("metadata"));
