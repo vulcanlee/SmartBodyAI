@@ -69,10 +69,10 @@ public partial class PatientInformationView
             processModel.Build();
 
             logMessage = "更新取得的授權碼與狀態碼...";
-            await UpdateMessage(logMessage);
+            //await UpdateMessage(logMessage);
             await SetAuthCodeAsync();
             logMessage = $"透過授權碼，取得 Access Token...";
-            await UpdateMessage(logMessage);
+           // await UpdateMessage(logMessage);
             smartResponse = await GetAccessTokenAsync();
             if (string.IsNullOrEmpty(smartResponse.AccessToken))
             {

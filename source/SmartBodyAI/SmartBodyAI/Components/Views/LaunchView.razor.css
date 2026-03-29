@@ -26,6 +26,15 @@ body {
     gap: 20px;
 }
 
+.loading-floating {
+    position: fixed;
+    left: 50%;
+    bottom: 8vh;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
 .hospital-logo {
     width: 200px;
     height: 100%;

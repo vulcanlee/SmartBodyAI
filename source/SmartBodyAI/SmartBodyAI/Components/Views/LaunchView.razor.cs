@@ -1,5 +1,6 @@
 ﻿using AntDesign;
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Utility;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using SmartBodyAI.Models;
@@ -11,6 +12,8 @@ public partial class LaunchView
 {
     [Parameter]
     public bool ShowMode { get; set; }
+    [Parameter]
+    public bool IsDebug { get; set; }
     //[Parameter]
     public string? Iss { get; set; }
     //[Parameter]
@@ -39,13 +42,25 @@ public partial class LaunchView
             {
                 await System.Threading.Tasks.Task.Delay(500);
 
+                _ = Notice.Open(new NotificationConfig()
+                {
+                    Message = "通知",
+                    Key = Guid.NewGuid().ToString(),
+                    Description = $"系統正在啟動與初始化中，請稍待...",
+                    NotificationType = NotificationType.Info,
+                    Duration = 5.0,
+                });
+
+
                 logMessage = $"LaunchView OnAfterRenderAsync: Iss={Iss}, LaunchCode={LaunchCode}";
                 logger.LogInformation(logMessage);
                 logMessage = "系統初始化中...";
-                await UpdateMessage(logMessage);
+                if (IsDebug)
+                    await UpdateMessage(logMessage);
                 KeepLaunchIss();
                 logMessage = $"從 FHIR 伺服器取得 Metadata 資訊...";
-                await UpdateMessage(logMessage);
+                if (IsDebug)
+                    await UpdateMessage(logMessage);
                 var success = await GetMetadataAsync();
                 var authUrl = string.Empty;
 
@@ -54,18 +69,21 @@ public partial class LaunchView
                     logMessage = $"成功從 FHIR 伺服器取得 Metadata 資訊，並解析出 OAuth 端點 URL。";
                     logger.LogInformation(logMessage);
                     logMessage = "正在處理授權請求，請稍候...";
-                    await UpdateMessage(logMessage);
+                    if (IsDebug)
+                        await UpdateMessage(logMessage);
                     authUrl = await GetAuthorizeUrlAsync();
                     logMessage = $"取得重新導向到授權伺服器 URL: {authUrl}";
-                    await UpdateMessage($"準備重新導向", logMessage, NotificationType.Warning, 3.0);
+                    if (IsDebug)
+                        await UpdateMessage($"準備重新導向", logMessage, NotificationType.Warning, 3.0);
                 }
                 else
                 {
-                    await UpdateMessage("發生例外異常","從 FHIR 伺服器取得 Metadata 資訊失敗", NotificationType.Error, 3.0);
+                    await UpdateMessage("發生例外異常", "從 FHIR 伺服器取得 Metadata 資訊失敗", NotificationType.Error, 3.0);
                 }
 
                 await System.Threading.Tasks.Task.Delay(500);
-                await UpdateMessage($"重新導向到授權伺服器 : {authUrl}");
+                if (IsDebug)
+                    await UpdateMessage($"重新導向到授權伺服器 : {authUrl}");
                 await System.Threading.Tasks.Task.Delay(1000);
                 NavigationManager.NavigateTo(authUrl);
             }
