@@ -40,6 +40,8 @@ public partial class LaunchView
         {
             try
             {
+                SmartAppSettingService.Data.IsDebug = IsDebug;
+                SmartAppSettingService.UpdateSetting(SmartAppSettingService.Data);
                 await System.Threading.Tasks.Task.Delay(500);
 
                 _ = Notice.Open(new NotificationConfig()

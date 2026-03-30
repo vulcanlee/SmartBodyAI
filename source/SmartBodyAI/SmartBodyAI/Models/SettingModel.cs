@@ -13,4 +13,5 @@ public class SettingModel
     public string UploadDicomTempPath { get; set; }
     public string DicomImagePath { get; set; }
     public string AIResultPath { get; set; }
+    public bool IsDebug { get; set; } = false;
 }

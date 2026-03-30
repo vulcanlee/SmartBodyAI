@@ -68,11 +68,13 @@ public partial class PatientInformationView
             processModel.Reset();
             processModel.Build();
 
-            logMessage = "更新取得的授權碼與狀態碼...";
-            //await UpdateMessage(logMessage);
             await SetAuthCodeAsync();
+            logMessage = "更新取得的授權碼與狀態碼...";
+            if (SmartAppSettingService.Data.IsDebug)
+                await UpdateMessage(logMessage);
             logMessage = $"透過授權碼，取得 Access Token...";
-           // await UpdateMessage(logMessage);
+            if (SmartAppSettingService.Data.IsDebug)
+                await UpdateMessage(logMessage);
             smartResponse = await GetAccessTokenAsync();
             if (string.IsNullOrEmpty(smartResponse.AccessToken))
             {
@@ -131,7 +133,8 @@ public partial class PatientInformationView
         StateHasChanged();
 
         logMessage = $"取得病患的基本資訊完成，取得此病患的身高與體重...";
-        await UpdateMessage(logMessage);
+        if (SmartAppSettingService.Data.IsDebug)
+            await UpdateMessage(logMessage);
         await GetHeightAndWeightAsync(smartResponse);
         await UpdateMessage($"已經完成取得 取得病患的基本資訊 與 此病患的身高與體重...");
 
@@ -266,7 +269,8 @@ public partial class PatientInformationView
             patientInformation.Name = patient.Name[0].ToString();
             patientInformation.BirthDate = patient.BirthDate;
             patientInformation.Gender = patient.Gender.ToString();
-            await UpdateMessage($"發現到病人的 {patientId} {patient.Name[0].ToString()} {patient.BirthDate} {patient.Gender}");
+            if (SmartAppSettingService.Data.IsDebug)
+                await UpdateMessage($"發現到病人的 {patientId} {patient.Name[0].ToString()} {patient.BirthDate} {patient.Gender}");
             return true;
         }
     }
@@ -622,7 +626,7 @@ public partial class PatientInformationView
     async System.Threading.Tasks.Task UpdateMessageError(string message)
     {
         logger.LogError($"操作上發生問題 - {message}");
-   
+
         await Notice.Open(new NotificationConfig()
         {
             Message = "操作上發生問題",
@@ -717,7 +721,7 @@ public partial class PatientInformationView
             return;
         }
 
-        if(string.IsNullOrEmpty(patientInformation.HeightValue) || string.IsNullOrEmpty(patientInformation.WeightValue))
+        if (string.IsNullOrEmpty(patientInformation.HeightValue) || string.IsNullOrEmpty(patientInformation.WeightValue))
         {
             await UpdateMessageError($"尚未取得病患的身高與體重資訊，所以無法進行 AI 推論作業，操作失敗");
             return;

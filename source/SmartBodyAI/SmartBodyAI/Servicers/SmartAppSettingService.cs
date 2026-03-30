@@ -20,6 +20,7 @@ public class SmartAppSettingService
         Data.AuthorizationScope = data.AuthorizationScope;
         Data.InferenceHostApi = data.InferenceHostApi;
         Data.AIResultPath = data.AIResultPath;
+        Data.IsDebug = data.IsDebug;
     }
 
     public void UpdateSetting(SmartAppSettingModel model)
@@ -37,5 +38,6 @@ public class SmartAppSettingService
         Data.Iss = model.Iss;
         Data.Launch = model.Launch;
         Data.State = model.State;
+        Data.IsDebug = model.IsDebug;
     }
 }

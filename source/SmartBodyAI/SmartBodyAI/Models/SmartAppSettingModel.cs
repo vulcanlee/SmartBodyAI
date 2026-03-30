@@ -5,6 +5,7 @@
 /// </summary>
 public class SmartAppSettingModel
 {
+    public bool IsDebug { get; set; }
     public string AuthorizationScope { get; set; }
     public int ProcessDelayTimeInMilliSeconds { get; set; }
 
