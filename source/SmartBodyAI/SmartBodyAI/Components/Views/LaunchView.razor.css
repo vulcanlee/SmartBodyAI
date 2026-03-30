@@ -29,7 +29,7 @@ body {
 .loading-floating {
     position: fixed;
     left: 50%;
-    bottom: 8vh;
+    bottom: 1vh;
     transform: translateX(-50%);
     z-index: 10;
     pointer-events: none;
