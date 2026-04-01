@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
+using System.Text.Json;
 
 namespace SmartBodyAI.Components.Views;
 
@@ -14,7 +15,7 @@ public partial class LaunchView
     public bool ShowMode { get; set; }
     [Parameter]
     public bool IsDebug { get; set; }
-    //[Parameter]
+    [Parameter]
     public string? Iss { get; set; }
     //[Parameter]
     public string? LaunchCode { get; set; }
@@ -41,6 +42,10 @@ public partial class LaunchView
             try
             {
                 SmartAppSettingService.Data.IsDebug = IsDebug;
+                if (string.IsNullOrEmpty(Iss) == false)
+                {
+                    SmartAppSettingService.Data.FhirServerUrl = Iss;
+                }
                 SmartAppSettingService.UpdateSetting(SmartAppSettingService.Data);
                 await System.Threading.Tasks.Task.Delay(500);
 
@@ -170,48 +175,131 @@ public partial class LaunchView
     /// </exception>
     public async Task<bool> GetMetadataAsync()
     {
-        logger.LogInformation($"Connecting to FHIR server at: {SmartAppSettingService.Data.FhirServerUrl}");
-        Hl7.Fhir.Rest.FhirClient fhirClient = new Hl7.Fhir.Rest.FhirClient(SmartAppSettingService.Data.FhirServerUrl);
+        string? fhirServerUrl = SmartAppSettingService.Data.FhirServerUrl?.TrimEnd('/');
+        logger.LogInformation($"Connecting to FHIR server at: {fhirServerUrl}");
 
-        CapabilityStatement capabilities = (CapabilityStatement)(await fhirClient.GetAsync("metadata"));
+        SmartAppSettingService.Data.AuthorizeUrl = string.Empty;
+        SmartAppSettingService.Data.TokenUrl = string.Empty;
 
-        foreach (CapabilityStatement.RestComponent restComponent in capabilities.Rest)
+        if (string.IsNullOrWhiteSpace(fhirServerUrl))
         {
-            if (restComponent.Security == null)
+            logger.LogWarning("FHIR server URL is empty.");
+            return false;
+        }
+
+        try
+        {
+            if (await TryGetSmartConfigurationAsync(fhirServerUrl))
             {
-                continue;
+                return true;
             }
 
-            foreach (Extension securityExt in restComponent.Security.Extension)
+            return await TryGetCapabilityStatementAsync(fhirServerUrl);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error connecting to FHIR server to retrieve SMART metadata.");
+            return false;
+        }
+    }
+
+    async Task<bool> TryGetSmartConfigurationAsync(string fhirServerUrl)
+    {
+        string smartConfigurationUrl = $"{fhirServerUrl}/.well-known/smart-configuration";
+
+        try
+        {
+            using HttpClient httpClient = new();
+            using HttpResponseMessage response = await httpClient.GetAsync(smartConfigurationUrl);
+
+            if (!response.IsSuccessStatusCode)
             {
-                if (securityExt.Url != "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris")
+                logger.LogWarning("Failed to retrieve SMART configuration from {SmartConfigurationUrl}. StatusCode: {StatusCode}", smartConfigurationUrl, response.StatusCode);
+                return false;
+            }
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            using JsonDocument jsonDocument = await JsonDocument.ParseAsync(responseStream);
+
+            if (jsonDocument.RootElement.TryGetProperty("authorization_endpoint", out JsonElement authorizationEndpoint))
+            {
+                SmartAppSettingService.Data.AuthorizeUrl = authorizationEndpoint.GetString() ?? string.Empty;
+            }
+
+            if (jsonDocument.RootElement.TryGetProperty("token_endpoint", out JsonElement tokenEndpoint))
+            {
+                SmartAppSettingService.Data.TokenUrl = tokenEndpoint.GetString() ?? string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(SmartAppSettingService.Data.AuthorizeUrl) || string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+            {
+                logger.LogWarning("SMART configuration does not contain complete OAuth endpoints.");
+                return false;
+            }
+
+            logger.LogInformation("Successfully retrieved SMART configuration from {SmartConfigurationUrl}", smartConfigurationUrl);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to retrieve SMART configuration from {SmartConfigurationUrl}", smartConfigurationUrl);
+            return false;
+        }
+    }
+
+    async Task<bool> TryGetCapabilityStatementAsync(string fhirServerUrl)
+    {
+        try
+        {
+            Hl7.Fhir.Rest.FhirClient fhirClient = new Hl7.Fhir.Rest.FhirClient(fhirServerUrl);
+            CapabilityStatement capabilities = (CapabilityStatement)(await fhirClient.GetAsync("metadata"));
+
+            foreach (CapabilityStatement.RestComponent restComponent in capabilities.Rest)
+            {
+                if (restComponent.Security == null)
                 {
                     continue;
                 }
 
-                if ((securityExt.Extension == null) || (securityExt.Extension.Count == 0))
+                foreach (Extension securityExt in restComponent.Security.Extension)
                 {
-                    continue;
-                }
-
-                foreach (Extension smartExt in securityExt.Extension)
-                {
-                    switch (smartExt.Url)
+                    if (securityExt.Url != "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris")
                     {
-                        case "authorize":
-                            SmartAppSettingService.Data.AuthorizeUrl = ((FhirUri)smartExt.Value).Value.ToString();
-                            break;
+                        continue;
+                    }
 
-                        case "token":
-                            SmartAppSettingService.Data.TokenUrl = ((FhirUri)smartExt.Value).Value.ToString();
-                            break;
+                    if ((securityExt.Extension == null) || (securityExt.Extension.Count == 0))
+                    {
+                        continue;
+                    }
+
+                    foreach (Extension smartExt in securityExt.Extension)
+                    {
+                        switch (smartExt.Url)
+                        {
+                            case "authorize":
+                                SmartAppSettingService.Data.AuthorizeUrl = ((FhirUri)smartExt.Value).Value ?? string.Empty;
+                                break;
+
+                            case "token":
+                                SmartAppSettingService.Data.TokenUrl = ((FhirUri)smartExt.Value).Value ?? string.Empty;
+                                break;
+                        }
                     }
                 }
             }
-        }
 
-        if (string.IsNullOrEmpty(SmartAppSettingService.Data.AuthorizeUrl) || string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+            if (string.IsNullOrEmpty(SmartAppSettingService.Data.AuthorizeUrl) || string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+            {
+                logger.LogWarning("CapabilityStatement does not contain complete SMART OAuth endpoints.");
+                return false;
+            }
+
+            logger.LogInformation("Successfully retrieved SMART OAuth endpoints from /metadata.");
+        }
+        catch (Exception ex)
         {
+            logger.LogWarning(ex, "Error connecting to FHIR server to retrieve CapabilityStatement metadata.");
             return false;
         }
 
