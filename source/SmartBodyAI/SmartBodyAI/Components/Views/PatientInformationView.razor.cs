@@ -92,6 +92,7 @@ public partial class PatientInformationView
                 return;
             }
             //await OAuthStateStoreService.RemoveAsync(State!);
+            patientMrm = smartResponse.PatientId;
             isAccessTokenReady = true;
             logMessage = $"已經成功取得 Access Token。  {smartResponse.AccessToken}";
             logMessage = $"已經成功取得 Access Token。";
@@ -288,16 +289,29 @@ public partial class PatientInformationView
         FhirClient fhirClient = new FhirClient(SmartAppSettingService.Data.FhirServerUrl, httpClient, settings);
 
 
-        // 依 MRN (identifier) 查病人
-        var bundle = await fhirClient.SearchAsync<Patient>(
-            new[] { $"identifier=http://hospital.smarthealthit.org|{patientMrm}" }
-        );
+        try
+        {
+            // patientMrm 目前存放的是選取到的 Patient Id，直接讀取病人資源
+            patient = await fhirClient.ReadAsync<Patient>($"Patient/{patientMrm}");
+        }
+        catch (FhirOperationException ex) when (ex.Status == System.Net.HttpStatusCode.Forbidden)
+        {
+            logger.LogWarning(ex, "使用 patientMrm 讀取病人失敗，Scopes: {Scopes}, PatientId: {PatientId}", smartResponse.Scopes, smartResponse.PatientId);
 
-        // 取第一筆病人
-        patient = bundle.Entry
-            .Select(e => e.Resource)
-            .OfType<Patient>()
-            .FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(smartResponse.PatientId))
+            {
+                patient = await fhirClient.ReadAsync<Patient>($"Patient/{smartResponse.PatientId}");
+            }
+            else
+            {
+                await UpdateMessageError("目前 Access Token 沒有 patient context，無法讀取病人資料。請確認已使用 launch/patient 重新授權。");
+                return false;
+            }
+        } catch(Exception ex)
+        {
+            await UpdateMessage($"指定的病人不存在");
+            return false;
+        }
 
         if (patient == null)
         {

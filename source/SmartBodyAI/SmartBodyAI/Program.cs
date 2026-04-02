@@ -5,6 +5,7 @@ using SmartBodyAI.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
+using SmartBodyAI.Services;
 using Syncfusion.Blazor;
 
 namespace SmartBodyAI
@@ -44,6 +45,8 @@ namespace SmartBodyAI
                 builder.Services.AddScoped<SmartAppSettingService>();
                 builder.Services.AddScoped<OAuthStateStoreService>();
                 builder.Services.AddScoped<DicomService>();
+                builder.Services.AddScoped<ConfigurationDiagnosticsService>();
+                builder.Services.AddScoped<HealthCheckService>();
                 builder.Services.AddAntDesign();
                 #endregion
 

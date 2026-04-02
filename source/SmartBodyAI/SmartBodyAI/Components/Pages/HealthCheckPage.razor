@@ -1,0 +1,143 @@
+@page "/health-check"
+@layout EmptyLayout
+@using SmartBodyAI.Models
+
+<PageTitle>SmartBodyAI Health Check</PageTitle>
+
+@if (isLoading)
+{
+    <div class="health-check-shell">
+        <section class="health-card">
+            <h1>SmartBodyAI Health Check</h1>
+            <p class="health-muted">正在蒐集設定、外部依賴與系統狀態...</p>
+        </section>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(loadError))
+{
+    <div class="health-check-shell">
+        <section class="health-card">
+            <h1>SmartBodyAI Health Check</h1>
+            <p class="status-pill status-red">載入失敗</p>
+            <p>@loadError</p>
+        </section>
+    </div>
+}
+else if (summary is not null)
+{
+    <div class="health-check-shell">
+        <section class="health-hero">
+            <div>
+                <p class="eyebrow">Internal Diagnostics</p>
+                <h1>SmartBodyAI Health Check</h1>
+                <p class="health-muted">檢查時間: @summary.CheckedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                <p class="health-note">此頁面會完整顯示敏感設定值，僅適合內部維運與除錯使用。</p>
+            </div>
+            <div class="score-panel @GetScoreClass(summary.TotalScore)">
+                <div class="score-value">@summary.TotalScore%</div>
+                <div class="score-label">總健康度</div>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card"><span class="stat-label">綠燈</span><strong>@summary.GreenCount</strong></article>
+            <article class="stat-card"><span class="stat-label">黃燈</span><strong>@summary.YellowCount</strong></article>
+            <article class="stat-card"><span class="stat-label">紅燈</span><strong>@summary.RedCount</strong></article>
+            <article class="stat-card"><span class="stat-label">有效 FHIR 目標</span><strong class="truncate">@summary.EffectiveFhirServerUrl</strong></article>
+        </section>
+
+        <section class="health-card">
+            <h2>關鍵摘要</h2>
+            <ul class="highlight-list">
+                @foreach (string highlight in summary.Highlights)
+                {
+                    <li>@highlight</li>
+                }
+            </ul>
+        </section>
+
+        <section class="health-card">
+            <h2>Request 與生效判讀</h2>
+            <div class="matrix-grid">
+                <div><span class="matrix-label">Query iss</span><div class="code-block">@Display(summary.QueryIss)</div></div>
+                <div><span class="matrix-label">Query launch</span><div class="code-block">@Display(summary.QueryLaunch)</div></div>
+                <div><span class="matrix-label">Query debug</span><div class="code-block">@Display(summary.QueryDebug?.ToString())</div></div>
+                <div><span class="matrix-label">Effective FHIR Server URL</span><div class="code-block">@Display(summary.EffectiveFhirServerUrl)</div></div>
+                <div><span class="matrix-label">Resolved Authorize URL</span><div class="code-block">@Display(summary.ResolvedAuthorizeUrl)</div></div>
+                <div><span class="matrix-label">Resolved Token URL</span><div class="code-block">@Display(summary.ResolvedTokenUrl)</div></div>
+            </div>
+            <p class="health-muted">
+                iss 覆寫全域 IConfiguration: <strong>不會</strong>。
+                iss 覆寫 SMART 執行流程使用的 FhirServerUrl: <strong>@(summary.IssOverridesRuntimeFhirServerUrl ? "會" : "不會")</strong>。
+            </p>
+        </section>
+
+        <section class="health-card">
+            <h2>指標明細</h2>
+            <div class="indicator-list">
+                @foreach (HealthIndicatorResult indicator in summary.Indicators)
+                {
+                    <article class="indicator-card">
+                        <div class="indicator-heading">
+                            <div class="indicator-title-wrap">
+                                <span class="traffic-light @GetIndicatorClass(indicator.Status)"></span>
+                                <h3>@indicator.Title</h3>
+                            </div>
+                            <span class="status-pill @GetIndicatorPillClass(indicator.Status)">@indicator.Status.ToString().ToUpperInvariant() / @indicator.Score</span>
+                        </div>
+                        <p class="indicator-summary">@indicator.Summary</p>
+                        <p class="indicator-detail">@indicator.Details</p>
+                        <p class="indicator-recommendation">建議: @indicator.Recommendation</p>
+                    </article>
+                }
+            </div>
+        </section>
+
+        <section class="health-card">
+            <h2>Configuration 欄位來源診斷</h2>
+            <div class="table-scroll">
+                <table class="diagnostic-table">
+                    <thead>
+                        <tr>
+                            <th>欄位</th><th>Final Value</th><th>appsettings.json</th><th>Runtime Value</th><th>Query Value</th><th>Provider</th><th>Flags</th><th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (ConfigurationFieldDiagnostic field in summary.ConfigurationFields)
+                        {
+                            <tr>
+                                <td>@field.Label</td>
+                                <td><code>@Display(field.FinalValue)</code></td>
+                                <td><code>@Display(field.AppSettingsValue)</code></td>
+                                <td><code>@Display(field.RuntimeValue)</code></td>
+                                <td><code>@Display(field.QueryValue)</code></td>
+                                <td>@Display(field.SourceProvider)</td>
+                                <td>
+                                    <div class="flag-list">
+                                        <span class="mini-flag">Exists: @field.Exists</span>
+                                        <span class="mini-flag">Env: @field.FromEnvironmentVariable</span>
+                                        <span class="mini-flag">!= AppSettings: @field.DiffersFromAppSettings</span>
+                                        <span class="mini-flag">Match Runtime: @field.MatchesRuntimeValue</span>
+                                        <span class="mini-flag">Query Override: @field.OverriddenByQuery</span>
+                                    </div>
+                                </td>
+                                <td>@field.Notes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="snapshot-grid">
+            <article class="health-card">
+                <h2>Bound Configuration Snapshot</h2>
+                <pre class="json-block">@summary.BoundSettingJson</pre>
+            </article>
+            <article class="health-card">
+                <h2>Runtime SMART Snapshot</h2>
+                <pre class="json-block">@summary.RuntimeSettingJson</pre>
+            </article>
+        </section>
+    </div>
+}
