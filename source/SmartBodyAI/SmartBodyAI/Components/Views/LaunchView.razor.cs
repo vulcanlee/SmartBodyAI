@@ -41,12 +41,15 @@ public partial class LaunchView
         {
             try
             {
+                logger.LogInformation($"LaunchView OnAfterRenderAsync: Iss={Iss}, Debug={IsDebug}");
                 SmartAppSettingService.Data.IsDebug = IsDebug;
                 if (string.IsNullOrEmpty(Iss) == false)
                 {
                     SmartAppSettingService.Data.FhirServerUrl = Iss;
                 }
                 SmartAppSettingService.UpdateSetting(SmartAppSettingService.Data);
+                var dataJson = JsonSerializer.Serialize(SmartAppSettingService.Data);
+                logger.LogInformation($"LaunchView OnAfterRenderAsync: SmartAppSettingService.Data= {dataJson}");
                 await System.Threading.Tasks.Task.Delay(500);
 
                 _ = Notice.Open(new NotificationConfig()
@@ -58,9 +61,6 @@ public partial class LaunchView
                     Duration = 5.0,
                 });
 
-
-                logMessage = $"LaunchView OnAfterRenderAsync: Iss={Iss}, LaunchCode={LaunchCode}";
-                logger.LogInformation(logMessage);
                 logMessage = "系統初始化中...";
                 if (IsDebug)
                     await UpdateMessage(logMessage);
@@ -73,7 +73,8 @@ public partial class LaunchView
 
                 if (success)
                 {
-                    logMessage = $"成功從 FHIR 伺服器取得 Metadata 資訊，並解析出 OAuth 端點 URL。";
+                    var dataJson2 = JsonSerializer.Serialize(SmartAppSettingService.Data);
+                    logMessage = $"成功從 FHIR 伺服器取得 Metadata 資訊，並解析出 OAuth 端點 URL。 {dataJson2}";
                     logger.LogInformation(logMessage);
                     logMessage = "正在處理授權請求，請稍候...";
                     if (IsDebug)
@@ -85,12 +86,14 @@ public partial class LaunchView
                 }
                 else
                 {
+                    logger.LogError("Failed to retrieve Metadata information from FHIR server.");
                     await UpdateMessage("發生例外異常", "從 FHIR 伺服器取得 Metadata 資訊失敗", NotificationType.Error, 3.0);
                 }
 
                 await System.Threading.Tasks.Task.Delay(500);
                 if (IsDebug)
                     await UpdateMessage($"重新導向到授權伺服器 : {authUrl}");
+                logger.LogInformation($"Redirecting to authorization server at: {authUrl}");
                 await System.Threading.Tasks.Task.Delay(1000);
                 NavigationManager.NavigateTo(authUrl);
             }
@@ -184,6 +187,7 @@ public partial class LaunchView
         if (string.IsNullOrWhiteSpace(fhirServerUrl))
         {
             logger.LogWarning("FHIR server URL is empty.");
+            await UpdateMessage("FHIR server URL is empty.");
             return false;
         }
 
@@ -199,6 +203,8 @@ public partial class LaunchView
         catch (Exception ex)
         {
             logger.LogError(ex, "Error connecting to FHIR server to retrieve SMART metadata.");
+            await UpdateMessage($"Error connecting to FHIR server: {ex.Message}");
+
             return false;
         }
     }
@@ -215,6 +221,8 @@ public partial class LaunchView
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("Failed to retrieve SMART configuration from {SmartConfigurationUrl}. StatusCode: {StatusCode}", smartConfigurationUrl, response.StatusCode);
+                    await UpdateMessage($"Failed to retrieve SMART configuration from {smartConfigurationUrl} , Status code: {response.StatusCode}");
+
                 return false;
             }
 
@@ -224,16 +232,29 @@ public partial class LaunchView
             if (jsonDocument.RootElement.TryGetProperty("authorization_endpoint", out JsonElement authorizationEndpoint))
             {
                 SmartAppSettingService.Data.AuthorizeUrl = authorizationEndpoint.GetString() ?? string.Empty;
+                logger.LogInformation("Successfully retrieved authorization endpoint from SMART configuration: {AuthorizeUrl}", SmartAppSettingService.Data.AuthorizeUrl);
+            }
+            else
+            {
+                logger.LogWarning("SMART configuration does not contain an authorization_endpoint.");
+                await UpdateMessage($"SMART configuration does not contain an authorization_endpoint.");
             }
 
             if (jsonDocument.RootElement.TryGetProperty("token_endpoint", out JsonElement tokenEndpoint))
             {
                 SmartAppSettingService.Data.TokenUrl = tokenEndpoint.GetString() ?? string.Empty;
+                logger.LogInformation("Successfully retrieved token endpoint from SMART configuration: {TokenUrl}", SmartAppSettingService.Data.TokenUrl);
+            }
+            else
+            {
+                logger.LogWarning("SMART configuration does not contain a token_endpoint.");
+                await UpdateMessage($"SMART configuration does not contain a token_endpoint.");
             }
 
             if (string.IsNullOrEmpty(SmartAppSettingService.Data.AuthorizeUrl) || string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
             {
                 logger.LogWarning("SMART configuration does not contain complete OAuth endpoints.");
+                await UpdateMessage($"SMART configuration does not contain complete OAuth endpoints.");
                 return false;
             }
 
@@ -243,6 +264,7 @@ public partial class LaunchView
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to retrieve SMART configuration from {SmartConfigurationUrl}", smartConfigurationUrl);
+            await UpdateMessage($"Failed to retrieve SMART configuration from {smartConfigurationUrl} : {ex.Message}");
             return false;
         }
     }
@@ -292,6 +314,8 @@ public partial class LaunchView
             if (string.IsNullOrEmpty(SmartAppSettingService.Data.AuthorizeUrl) || string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
             {
                 logger.LogWarning("CapabilityStatement does not contain complete SMART OAuth endpoints.");
+                var dataJson = JsonSerializer.Serialize(SmartAppSettingService.Data);
+                await UpdateMessage($"CapabilityStatement does not contain complete SMART OAuth endpoints. Data : {dataJson}");
                 return false;
             }
 
@@ -300,6 +324,7 @@ public partial class LaunchView
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Error connecting to FHIR server to retrieve CapabilityStatement metadata.");
+            await UpdateMessage($"Error connecting to FHIR server to retrieve CapabilityStatement metadata: {ex.Message}");
             return false;
         }
 
@@ -330,6 +355,8 @@ public partial class LaunchView
             $"&state={SmartAppSettingService.Data.State}" +
             $"&launch={SmartAppSettingService.Data.Launch}" +
             $"&aud={Uri.EscapeDataString(SmartAppSettingService.Data.FhirServerUrl)}";
+
+        logger.LogInformation($"Generated SMART on FHIR authorization URL: {launchUrl}");
         return launchUrl;
     }
 }

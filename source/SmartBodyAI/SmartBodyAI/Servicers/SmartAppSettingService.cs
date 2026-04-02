@@ -39,5 +39,6 @@ public class SmartAppSettingService
         Data.Launch = model.Launch;
         Data.State = model.State;
         Data.IsDebug = model.IsDebug;
+        Data.FhirServerUrl = model.FhirServerUrl;
     }
 }

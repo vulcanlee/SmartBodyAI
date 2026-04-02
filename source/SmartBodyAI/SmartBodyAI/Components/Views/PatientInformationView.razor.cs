@@ -54,21 +54,23 @@ public partial class PatientInformationView
     {
         if (firstRender)
         {
+            await SetAuthCodeAsync();
+
             if (string.IsNullOrEmpty(Code) || string.IsNullOrEmpty(State))
             {
                 StateHasChanged();
-                logMessage = "發現錯誤：Code 與 State 參數發現問題，無法繼續往下執行 !";
+                logMessage = $"發現錯誤：Code 與 State 參數發現問題，無法繼續往下執行 ! Code={Code} , State={State} ";
                 await UpdateMessage(logMessage);
+                logger.LogWarning($"Code 與 State 參數發現問題，無法繼續往下執行 ! Code={Code} , State={State} ");
                 StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
-                NavigationManager.NavigateTo("/");
+                GoHome();
                 return;
             }
 
             processModel.Reset();
             processModel.Build();
 
-            await SetAuthCodeAsync();
             logMessage = "更新取得的授權碼與狀態碼...";
             if (SmartAppSettingService.Data.IsDebug)
                 await UpdateMessage(logMessage);
@@ -79,15 +81,17 @@ public partial class PatientInformationView
             if (string.IsNullOrEmpty(smartResponse.AccessToken))
             {
                 logMessage = "取得 Access Token 失敗，無法繼續往下執行 !";
+                logger.LogWarning($"取得 Access Token 失敗，無法繼續往下執行 ! SmartResponse: {JsonSerializer.Serialize(smartResponse)}");
                 await UpdateMessage(logMessage);
                 StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
-                NavigationManager.NavigateTo("/");
+                GoHome();
                 return;
             }
             isAccessTokenReady = true;
             logMessage = $"已經成功取得 Access Token。  {smartResponse.AccessToken}";
             logMessage = $"已經成功取得 Access Token。";
+            logger.LogInformation($"已經成功取得 Access Token : {smartResponse.AccessToken}");
             await UpdateMessage(logMessage);
             //await GetLastYearOrdersAsync(smartResponse);
             StateHasChanged();
@@ -98,20 +102,9 @@ public partial class PatientInformationView
         }
     }
 
-    async System.Threading.Tasks.Task OnChoicePatientNAsync(string n)
+    private void GoHome()
     {
-        if (n == "1")
-            patientId = "dc9335d0-bbdd-4120-8ae9-baa6604343b6";
-        else if (n == "2")
-            patientId = "3c7d3369-55b5-420b-83d3-c5dda319b9c9";
-        else if (n == "3")
-            patientId = "68cd1181-6359-4047-a77f-a165d7912480";
-        else if (n == "4")
-            patientId = "29d755a6-32fa-482e-8fdd-081300209df8";
-        else if (n == "5")
-            patientId = "fd9a5c15-8c54-4dad-9b69-9e0e5e904548";
-
-        patientMrm = patientId;
+        NavigationManager.NavigateTo($"/?iss={SmartAppSettingService.Data.FhirServerUrl}");
     }
 
     async System.Threading.Tasks.Task OnQueryPatientAsync()
@@ -153,7 +146,7 @@ public partial class PatientInformationView
 
         if (SmartAppSettingModelItem == null)
         {
-            NavigationManager.NavigateTo("/");
+            logger.LogWarning($"無法找到對應 State 的設定資料，State={State}");
             return;
         }
         SmartAppSettingModelItem.AuthCode = Code;
@@ -171,6 +164,7 @@ public partial class PatientInformationView
         if (string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
         {
             logger.LogWarning("TokenUrl 未設定，無法交換 Access Token。");
+            await UpdateMessage($"TokenUrl 未設定，無法交換 Access Token。");
             return new SmartResponse();
         }
 
@@ -182,6 +176,9 @@ public partial class PatientInformationView
                 { "redirect_uri", SmartAppSettingService.Data.RedirectUrl },
                 { "client_id", SmartAppSettingService.Data.ClientId }
             };
+
+        string bodyDictionaryJsonContent = JsonSerializer.Serialize(requestValues);
+        logger.LogInformation($"準備交換 Access Token，Token Endpoint: {SmartAppSettingService.Data.TokenUrl}, Request Body: {bodyDictionaryJsonContent}");
 
         if (!string.IsNullOrWhiteSpace(SmartAppSettingService.Data.Launch))
         {
@@ -200,6 +197,7 @@ public partial class PatientInformationView
             var basicAuthValue = Convert.ToBase64String(
                 Encoding.UTF8.GetBytes($"{SmartAppSettingService.Data.ClientId}:{SmartAppSettingService.Data.ClientSecret}"));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuthValue);
+            logger.LogInformation($"使用 Client Secret 進行 Basic Authentication，Client ID: {SmartAppSettingService.Data.ClientId} , Authorization Header : Basic {basicAuthValue}");
         }
 
         HttpClient client = new HttpClient();
@@ -213,15 +211,18 @@ public partial class PatientInformationView
                 "取得 Access Token 失敗，HTTP Status Code: {StatusCode}, Response: {ResponseBody}",
                 (int)response.StatusCode,
                 responseBody);
+            await UpdateMessage($"取得 Access Token 失敗，HTTP Status Code: {(int)response.StatusCode}, Response: {responseBody}，無法繼續往下執行 !");
             smartResponse = new();
             return smartResponse;
         }
 
         string json = await response.Content.ReadAsStringAsync();
 
-        logger.LogInformation("已收到 Access Token 回應。");
+        logger.LogInformation($"已收到 Access Token 回應。 {json}");
 
         smartResponse = JsonSerializer.Deserialize<SmartResponse>(json) ?? new SmartResponse();
+        var smartResponseJson = JsonSerializer.Serialize(smartResponse);
+        logger.LogInformation($"反序列化 Access Token 回應成功。 SmartResponse: {smartResponseJson}");
         return smartResponse;
     }
 
