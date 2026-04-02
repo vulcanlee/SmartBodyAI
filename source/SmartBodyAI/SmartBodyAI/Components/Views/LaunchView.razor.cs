@@ -42,6 +42,8 @@ public partial class LaunchView
         {
             try
             {
+                string requestUri = NavigationManager.Uri;
+                logger.LogInformation($"LaunchView OnAfterRenderAsync: Request URI: {requestUri}");
                 logger.LogInformation($"LaunchView OnAfterRenderAsync: Iss={Iss}, Debug={IsDebug}");
                 SmartAppSettingService.Data.IsDebug = IsDebug;
                 if (string.IsNullOrEmpty(Iss) == false)
@@ -222,7 +224,7 @@ public partial class LaunchView
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("Failed to retrieve SMART configuration from {SmartConfigurationUrl}. StatusCode: {StatusCode}", smartConfigurationUrl, response.StatusCode);
-                    await UpdateMessage($"Failed to retrieve SMART configuration from {smartConfigurationUrl} , Status code: {response.StatusCode}");
+                await UpdateMessage($"Failed to retrieve SMART configuration from {smartConfigurationUrl} , Status code: {response.StatusCode}");
 
                 return false;
             }

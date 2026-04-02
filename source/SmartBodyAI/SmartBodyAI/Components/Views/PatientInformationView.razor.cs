@@ -59,6 +59,8 @@ public partial class PatientInformationView
     {
         if (firstRender)
         {
+            string requestUri = NavigationManager.Uri;
+            logger.LogInformation($"PatientInformationView loaded with URI: {requestUri}");
             hasValidAuthorizationResponse = await SetAuthCodeAsync();
 
             if (!hasValidAuthorizationResponse)
