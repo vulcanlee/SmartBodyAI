@@ -1,4 +1,4 @@
-﻿using SmartBodyAI.Models;
+using SmartBodyAI.Models;
 
 namespace SmartBodyAI.Servicers;
 
@@ -32,6 +32,12 @@ public class SmartAppSettingService
         Data.ClientSecret = model.ClientSecret;
         Data.RedirectUrl = model.RedirectUrl;
         Data.AuthCode = model.AuthCode;
+        Data.CodeVerifier = model.CodeVerifier;
+        Data.CodeChallengeMethod = string.IsNullOrWhiteSpace(model.CodeChallengeMethod)
+            ? SmartAppSettingModel.DefaultCodeChallengeMethod
+            : model.CodeChallengeMethod;
+        Data.AuthorizationError = model.AuthorizationError;
+        Data.AuthorizationErrorDescription = model.AuthorizationErrorDescription;
         Data.ClientState = model.ClientState;
         Data.TokenUrl = model.TokenUrl;
         Data.AuthorizeUrl = model.AuthorizeUrl;

@@ -1,8 +1,9 @@
-﻿using AntDesign;
+using AntDesign;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.WebUtilities;
+using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
 using System.Text.Json;
@@ -17,7 +18,7 @@ public partial class LaunchView
     public bool IsDebug { get; set; }
     [Parameter]
     public string? Iss { get; set; }
-    //[Parameter]
+    [Parameter]
     public string? LaunchCode { get; set; }
 
     [Inject]
@@ -334,7 +335,14 @@ public partial class LaunchView
     public async System.Threading.Tasks.Task<string> GetAuthorizeUrlAsync()
     {
         var state = Guid.NewGuid().ToString("N");
+        var codeVerifier = PkceHelper.GenerateCodeVerifier();
+        var codeChallenge = PkceHelper.GenerateCodeChallenge(codeVerifier);
+
         SmartAppSettingService.Data.State = state;
+        SmartAppSettingService.Data.CodeVerifier = codeVerifier;
+        SmartAppSettingService.Data.CodeChallengeMethod = SmartAppSettingModel.DefaultCodeChallengeMethod;
+        SmartAppSettingService.Data.AuthorizationError = string.Empty;
+        SmartAppSettingService.Data.AuthorizationErrorDescription = string.Empty;
 
         await OAuthStateStoreService.SaveAsync<SmartAppSettingModel>(state, SmartAppSettingService.Data, TimeSpan.FromMinutes(10));
 
@@ -348,13 +356,28 @@ public partial class LaunchView
         // - state: 用於防止 CSRF 攻擊的隨機值，授權後會原封不動地返回
         // - launch: EHR Launch 模式下，由 EHR 系統提供的啟動上下文識別碼 (Standalone Launch 則為空)
         // - aud: 目標 FHIR 伺服器的 URL，用於指定要存取的資源伺服器
-        string launchUrl = $"{SmartAppSettingService.Data.AuthorizeUrl}?response_type=code" +
-            $"&client_id={SmartAppSettingService.Data.ClientId}" +
-            $"&redirect_uri={Uri.EscapeDataString(SmartAppSettingService.Data.RedirectUrl)}" +
-            $"&scope={Uri.EscapeDataString(SmartAppSettingService.Data.AuthorizationScope)}" +
-            $"&state={SmartAppSettingService.Data.State}" +
-            $"&launch={SmartAppSettingService.Data.Launch}" +
-            $"&aud={Uri.EscapeDataString(SmartAppSettingService.Data.FhirServerUrl)}";
+        Dictionary<string, string?> queryParameters = new()
+        {
+            ["response_type"] = "code",
+            ["client_id"] = SmartAppSettingService.Data.ClientId,
+            ["redirect_uri"] = SmartAppSettingService.Data.RedirectUrl,
+            ["scope"] = SmartAppSettingService.Data.AuthorizationScope,
+            ["state"] = SmartAppSettingService.Data.State,
+            ["aud"] = SmartAppSettingService.Data.FhirServerUrl,
+            ["code_challenge"] = codeChallenge,
+            ["code_challenge_method"] = SmartAppSettingService.Data.CodeChallengeMethod
+        };
+
+        if (!string.IsNullOrWhiteSpace(SmartAppSettingService.Data.Launch))
+        {
+            queryParameters["launch"] = SmartAppSettingService.Data.Launch;
+        }
+
+        string launchUrl = QueryHelpers.AddQueryString(
+            SmartAppSettingService.Data.AuthorizeUrl,
+            queryParameters
+                .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                .ToDictionary(x => x.Key, x => x.Value));
 
         logger.LogInformation($"Generated SMART on FHIR authorization URL: {launchUrl}");
         return launchUrl;

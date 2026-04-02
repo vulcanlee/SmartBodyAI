@@ -1,4 +1,4 @@
-﻿using AntDesign;
+using AntDesign;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.AspNetCore.Components;
@@ -18,6 +18,10 @@ public partial class PatientInformationView
     public string? Code { get; set; }
     [Parameter]
     public string? State { get; set; }
+    [Parameter]
+    public string? Error { get; set; }
+    [Parameter]
+    public string? ErrorDescription { get; set; }
     [Inject]
     public SmartAppSettingService SmartAppSettingService { get; init; }
     [Inject]
@@ -49,22 +53,19 @@ public partial class PatientInformationView
 
     string randomNumberKey = "";
     CancellationTokenSource cts = new CancellationTokenSource();
+    bool hasValidAuthorizationResponse;
 
     protected override async System.Threading.Tasks.Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await SetAuthCodeAsync();
+            hasValidAuthorizationResponse = await SetAuthCodeAsync();
 
-            if (string.IsNullOrEmpty(Code) || string.IsNullOrEmpty(State))
+            if (!hasValidAuthorizationResponse)
             {
                 StateHasChanged();
-                logMessage = $"發現錯誤：Code 與 State 參數發現問題，無法繼續往下執行 ! Code={Code} , State={State} ";
-                await UpdateMessage(logMessage);
-                logger.LogWarning($"Code 與 State 參數發現問題，無法繼續往下執行 ! Code={Code} , State={State} ");
-                StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
-                GoHome();
+                //GoHome();
                 return;
             }
 
@@ -88,6 +89,7 @@ public partial class PatientInformationView
                 GoHome();
                 return;
             }
+            //await OAuthStateStoreService.RemoveAsync(State!);
             isAccessTokenReady = true;
             logMessage = $"已經成功取得 Access Token。  {smartResponse.AccessToken}";
             logMessage = $"已經成功取得 Access Token。";
@@ -139,21 +141,57 @@ public partial class PatientInformationView
     /// 更新取得的授權碼與狀態碼
     /// </summary>
     /// <returns></returns>
-    public async System.Threading.Tasks.Task SetAuthCodeAsync()
+    public async System.Threading.Tasks.Task<bool> SetAuthCodeAsync()
     {
         await System.Threading.Tasks.Task.Yield();
+
+        if (string.IsNullOrWhiteSpace(State))
+        {
+            logMessage = $"發現錯誤：缺少 state 參數，無法繼續往下執行 ! State={State}";
+            await UpdateMessage(logMessage, 10);
+            logger.LogWarning(logMessage);
+            return false;
+        }
+
         var SmartAppSettingModelItem = await OAuthStateStoreService.LoadAsync<SmartAppSettingModel>(State);
 
         if (SmartAppSettingModelItem == null)
         {
-            logger.LogWarning($"無法找到對應 State 的設定資料，State={State}");
-            return;
+            logMessage = $"無法找到對應 State 的設定資料，可能已過期或已被使用，State={State}";
+            await UpdateMessage(logMessage, 10);
+            logger.LogWarning(logMessage);
+            return false;
         }
+
+        if (!string.IsNullOrWhiteSpace(Error))
+        {
+            SmartAppSettingModelItem.AuthorizationError = Error;
+            SmartAppSettingModelItem.AuthorizationErrorDescription = ErrorDescription ?? string.Empty;
+            SmartAppSettingService.UpdateSetting(SmartAppSettingModelItem);
+
+            logMessage = $"授權伺服器回傳錯誤：{Error} {ErrorDescription}";
+            await UpdateMessage(logMessage, 10);
+            logger.LogWarning(logMessage);
+            await OAuthStateStoreService.RemoveAsync(State!);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(Code))
+        {
+            logMessage = $"發現錯誤：缺少 code 參數，無法繼續往下執行 ! Code={Code} , State={State}";
+            await UpdateMessage(logMessage, 10);
+            logger.LogWarning(logMessage);
+            await OAuthStateStoreService.RemoveAsync(State!);
+            return false;
+        }
+
         SmartAppSettingModelItem.AuthCode = Code;
         SmartAppSettingModelItem.State = State;
+        SmartAppSettingModelItem.AuthorizationError = string.Empty;
+        SmartAppSettingModelItem.AuthorizationErrorDescription = string.Empty;
 
         SmartAppSettingService.UpdateSetting(SmartAppSettingModelItem);
-        //Console.WriteLine($"Retrive state: {SmartAppSettingService.Data.State}");
+        return true;
     }
 
     /// <summary>
@@ -174,7 +212,8 @@ public partial class PatientInformationView
                 { "grant_type", "authorization_code" },
                 { "code", SmartAppSettingService.Data.AuthCode },
                 { "redirect_uri", SmartAppSettingService.Data.RedirectUrl },
-                { "client_id", SmartAppSettingService.Data.ClientId }
+                { "client_id", SmartAppSettingService.Data.ClientId },
+                { "code_verifier", SmartAppSettingService.Data.CodeVerifier }
             };
 
         string bodyDictionaryJsonContent = JsonSerializer.Serialize(requestValues);
@@ -211,6 +250,7 @@ public partial class PatientInformationView
                 "取得 Access Token 失敗，HTTP Status Code: {StatusCode}, Response: {ResponseBody}",
                 (int)response.StatusCode,
                 responseBody);
+            await OAuthStateStoreService.RemoveAsync(State!);
             await UpdateMessage($"取得 Access Token 失敗，HTTP Status Code: {(int)response.StatusCode}, Response: {responseBody}，無法繼續往下執行 !");
             smartResponse = new();
             return smartResponse;
@@ -609,7 +649,7 @@ public partial class PatientInformationView
         return string.Empty;
     }
 
-    async System.Threading.Tasks.Task UpdateMessage(string message)
+    async System.Threading.Tasks.Task UpdateMessage(string message, double duration = 1)
     {
         logger.LogInformation($"存取 FHIR 資源 - {message}");
 
@@ -619,7 +659,7 @@ public partial class PatientInformationView
             Key = Guid.NewGuid().ToString(),
             Description = $"{message}",
             NotificationType = NotificationType.Info,
-            Duration = 1
+            Duration = duration
         });
 
     }

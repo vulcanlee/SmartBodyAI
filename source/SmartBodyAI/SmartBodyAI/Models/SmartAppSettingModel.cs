@@ -1,10 +1,12 @@
-﻿namespace SmartBodyAI.Models;
+namespace SmartBodyAI.Models;
 
 /// <summary>
 /// Smart On FHIR 設定模型，用於儲存與 FHIR 伺服器互動所需的各項設定值。
 /// </summary>
 public class SmartAppSettingModel
 {
+    public const string DefaultCodeChallengeMethod = "S256";
+
     public bool IsDebug { get; set; }
     public string AuthorizationScope { get; set; }
     public int ProcessDelayTimeInMilliSeconds { get; set; }
@@ -31,6 +33,10 @@ public class SmartAppSettingModel
     /// 從授權伺服器取得的授權碼 (Authorization Code)。
     /// </summary>
     public string AuthCode { get; set; }
+    public string CodeVerifier { get; set; }
+    public string CodeChallengeMethod { get; set; } = DefaultCodeChallengeMethod;
+    public string AuthorizationError { get; set; }
+    public string AuthorizationErrorDescription { get; set; }
 
     /// <summary>
     /// 用於驗證請求完整性的客戶端狀態字串。
