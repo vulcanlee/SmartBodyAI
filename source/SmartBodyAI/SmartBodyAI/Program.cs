@@ -41,12 +41,15 @@ namespace SmartBodyAI
 
                 #region 客製化註冊服務
                 builder.Services.AddDistributedMemoryCache();
+                builder.Services.AddHttpClient();
                 builder.Services.AddScoped<SettingService>();
                 builder.Services.AddScoped<SmartAppSettingService>();
                 builder.Services.AddScoped<OAuthStateStoreService>();
                 builder.Services.AddScoped<DicomService>();
                 builder.Services.AddScoped<ConfigurationDiagnosticsService>();
                 builder.Services.AddScoped<HealthCheckService>();
+                builder.Services.AddScoped<ISmartDiscoveryService, SmartDiscoveryService>();
+                builder.Services.AddScoped<ISmartAuthorizationService, SmartAuthorizationService>();
                 builder.Services.AddAntDesign();
                 #endregion
 

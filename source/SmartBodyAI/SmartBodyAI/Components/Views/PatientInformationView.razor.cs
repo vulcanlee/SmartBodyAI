@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using SmartBodyAI.Helpers;
 using SmartBodyAI.Models;
 using SmartBodyAI.Servicers;
+using SmartBodyAI.Services;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
@@ -34,6 +35,8 @@ public partial class PatientInformationView
     public INotificationService Notice { get; init; }
     [Inject]
     public SettingService SettingService { get; init; }
+    [Inject]
+    public ISmartAuthorizationService SmartAuthorizationService { get; init; }
 
     Patient patient = new();
     SmartResponse smartResponse = new();
@@ -60,8 +63,8 @@ public partial class PatientInformationView
         if (firstRender)
         {
             string requestUri = NavigationManager.Uri;
-            logger.LogInformation($"PatientInformationView loaded with URI: {requestUri}");
-            hasValidAuthorizationResponse = await SetAuthCodeAsync();
+            logger.LogInformation($"PatientInformationView 已載入，URI：{requestUri}");
+            hasValidAuthorizationResponse = await ValidateAuthorizationResponseAsync();
 
             if (!hasValidAuthorizationResponse)
             {
@@ -80,23 +83,32 @@ public partial class PatientInformationView
             logMessage = $"透過授權碼，取得 Access Token...";
             if (SmartAppSettingService.Data.IsDebug)
                 await UpdateMessage(logMessage);
-            smartResponse = await GetAccessTokenAsync();
-            if (string.IsNullOrEmpty(smartResponse.AccessToken))
+            var tokenResult = await GetAccessTokenResultAsync();
+            if (!tokenResult.IsValid)
             {
-                logMessage = "取得 Access Token 失敗，無法繼續往下執行 !";
-                logger.LogWarning($"取得 Access Token 失敗，無法繼續往下執行 ! SmartResponse: {JsonSerializer.Serialize(smartResponse)}");
+                logMessage = "取得 Access Token 失敗，無法繼續往下執行！";
+                logger.LogWarning($"取得 Access Token 失敗，無法繼續往下執行！SmartResponse 內容：{JsonSerializer.Serialize(smartResponse)}");
                 await UpdateMessage(logMessage);
                 StateHasChanged();
                 await System.Threading.Tasks.Task.Delay(2000);
                 GoHome();
                 return;
             }
-            //await OAuthStateStoreService.RemoveAsync(State!);
-            patientMrm = smartResponse.PatientId;
+            smartResponse = new SmartResponse
+            {
+                AccessToken = tokenResult.AccessToken,
+                PatientId = tokenResult.PatientId,
+                Scopes = tokenResult.Scopes,
+                IdToken = tokenResult.IdToken,
+                FhirUser = tokenResult.FhirUser,
+                TokenType = "Bearer"
+            };
+            patientMrm = tokenResult.PatientId;
             isAccessTokenReady = true;
-            logMessage = $"已經成功取得 Access Token。  {smartResponse.AccessToken}";
-            logMessage = $"已經成功取得 Access Token。";
-            logger.LogInformation($"已經成功取得 Access Token : {smartResponse.AccessToken}");
+            logMessage = $"已成功取得 Access Token。{smartResponse.AccessToken}";
+            logMessage = $"已成功取得 Access Token。";
+            logger.LogInformation($"已成功取得 Access Token：{smartResponse.AccessToken}");
+            logMessage = $"SMART 存取權杖已就緒，病患編號：{smartResponse.PatientId}";
             await UpdateMessage(logMessage);
             //await GetLastYearOrdersAsync(smartResponse);
             StateHasChanged();
@@ -123,7 +135,7 @@ public partial class PatientInformationView
         var found = await GetPatientAsync(smartResponse);
         if (!found)
         {
-            logger.LogWarning($"病患的 {patientId} 找不到!");
+            logger.LogWarning($"找不到病患 {patientId}！");
             return;
         }
         SubjectNo = patientInformation.Id;
@@ -138,6 +150,56 @@ public partial class PatientInformationView
 
         processModel.ActiveClass[1] = MagicObjectHelper.ActiveClassName;
         processModel.Build();
+    }
+
+    private async Task<bool> ValidateAuthorizationResponseAsync()
+    {
+        var validationResult = await SmartAuthorizationService.ValidateCallbackAsync(Code, State, Error, ErrorDescription);
+        if (!validationResult.IsValid || validationResult.StoredState is null)
+        {
+            logMessage = string.Join(" | ", validationResult.Errors.DefaultIfEmpty("SMART 回呼驗證失敗。"));
+            await UpdateMessage(logMessage, 10);
+            logger.LogWarning(logMessage);
+            return false;
+        }
+
+        validationResult.StoredState.AuthCode = validationResult.Code ?? string.Empty;
+        validationResult.StoredState.AuthorizationError = string.Empty;
+        validationResult.StoredState.AuthorizationErrorDescription = string.Empty;
+        SmartAppSettingService.UpdateSetting(validationResult.StoredState);
+        return true;
+    }
+
+    private async Task<SmartTokenValidationResult> GetAccessTokenResultAsync()
+    {
+        if (string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
+        {
+            logger.LogWarning("TokenUrl 為空白，無法交換授權碼。");
+            await UpdateMessage("TokenUrl 為空白，無法交換授權碼。");
+            return new SmartTokenValidationResult
+            {
+                Errors = ["Token 端點為空白。"]
+            };
+        }
+
+        var tokenResult = await SmartAuthorizationService.ExchangeCodeForTokenAsync(
+            SmartAppSettingService.Data.TokenUrl,
+            SmartAppSettingService.Data.AuthCode,
+            SmartAppSettingService.Data.State,
+            SmartAppSettingService.Data.ClientId,
+            SmartAppSettingService.Data.ClientSecret,
+            SmartAppSettingService.Data.RedirectUrl);
+
+        if (tokenResult.IsValid)
+        {
+            logger.LogInformation("SMART 權杖交換與 OIDC 驗證成功，病患編號：{PatientId}。", tokenResult.PatientId);
+        }
+        else
+        {
+            logger.LogWarning("SMART 權杖交換或 OIDC 驗證失敗：{Errors}", string.Join(" | ", tokenResult.Errors));
+        }
+
+        return tokenResult;
     }
 
     /// <summary>
@@ -205,7 +267,7 @@ public partial class PatientInformationView
         if (string.IsNullOrEmpty(SmartAppSettingService.Data.TokenUrl))
         {
             logger.LogWarning("TokenUrl 未設定，無法交換 Access Token。");
-            await UpdateMessage($"TokenUrl 未設定，無法交換 Access Token。");
+            await UpdateMessage("TokenUrl 未設定，無法交換 Access Token。");
             return new SmartResponse();
         }
 
@@ -220,7 +282,7 @@ public partial class PatientInformationView
             };
 
         string bodyDictionaryJsonContent = JsonSerializer.Serialize(requestValues);
-        logger.LogInformation($"準備交換 Access Token，Token Endpoint: {SmartAppSettingService.Data.TokenUrl}, Request Body: {bodyDictionaryJsonContent}");
+        logger.LogInformation($"準備交換 Access Token，Token 端點：{SmartAppSettingService.Data.TokenUrl}，要求內容：{bodyDictionaryJsonContent}");
 
         if (!string.IsNullOrWhiteSpace(SmartAppSettingService.Data.Launch))
         {
@@ -239,7 +301,7 @@ public partial class PatientInformationView
             var basicAuthValue = Convert.ToBase64String(
                 Encoding.UTF8.GetBytes($"{SmartAppSettingService.Data.ClientId}:{SmartAppSettingService.Data.ClientSecret}"));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuthValue);
-            logger.LogInformation($"使用 Client Secret 進行 Basic Authentication，Client ID: {SmartAppSettingService.Data.ClientId} , Authorization Header : Basic {basicAuthValue}");
+            logger.LogInformation($"使用 Client Secret 進行 Basic 驗證，Client ID：{SmartAppSettingService.Data.ClientId}，授權標頭：Basic {basicAuthValue}");
         }
 
         HttpClient client = new HttpClient();
@@ -250,22 +312,22 @@ public partial class PatientInformationView
         {
             var responseBody = await response.Content.ReadAsStringAsync();
             logger.LogWarning(
-                "取得 Access Token 失敗，HTTP Status Code: {StatusCode}, Response: {ResponseBody}",
+                "取得 Access Token 失敗，HTTP 狀態碼：{StatusCode}，回應內容：{ResponseBody}",
                 (int)response.StatusCode,
                 responseBody);
             await OAuthStateStoreService.RemoveAsync(State!);
-            await UpdateMessage($"取得 Access Token 失敗，HTTP Status Code: {(int)response.StatusCode}, Response: {responseBody}，無法繼續往下執行 !");
+            await UpdateMessage($"取得 Access Token 失敗，HTTP 狀態碼：{(int)response.StatusCode}，回應內容：{responseBody}，無法繼續往下執行！");
             smartResponse = new();
             return smartResponse;
         }
 
         string json = await response.Content.ReadAsStringAsync();
 
-        logger.LogInformation($"已收到 Access Token 回應。 {json}");
+        logger.LogInformation($"已收到 Access Token 回應：{json}");
 
         smartResponse = JsonSerializer.Deserialize<SmartResponse>(json) ?? new SmartResponse();
         var smartResponseJson = JsonSerializer.Serialize(smartResponse);
-        logger.LogInformation($"反序列化 Access Token 回應成功。 SmartResponse: {smartResponseJson}");
+        logger.LogInformation($"反序列化 Access Token 回應成功。SmartResponse 內容：{smartResponseJson}");
         return smartResponse;
     }
 
@@ -296,7 +358,7 @@ public partial class PatientInformationView
         }
         catch (FhirOperationException ex) when (ex.Status == System.Net.HttpStatusCode.Forbidden)
         {
-            logger.LogWarning(ex, "使用 patientMrm 讀取病人失敗，Scopes: {Scopes}, PatientId: {PatientId}", smartResponse.Scopes, smartResponse.PatientId);
+            logger.LogWarning(ex, "使用 patientMrm 讀取病人失敗，Scopes：{Scopes}，病患編號：{PatientId}", smartResponse.Scopes, smartResponse.PatientId);
 
             if (!string.IsNullOrWhiteSpace(smartResponse.PatientId))
             {
@@ -452,7 +514,7 @@ public partial class PatientInformationView
         var list = encounterSearch.ToUriParamList();
         var query = string.Join("&", list.Select(p => $"{p.Item1}={p.Item2}"));
         string fullUrl = $"{SmartAppSettingService.Data.FhirServerUrl}/Encounter?{query}";
-        System.Console.WriteLine($"FHIR Search URL: {fullUrl}");
+        System.Console.WriteLine($"FHIR 查詢網址：{fullUrl}");
 
         Bundle encounterBundle = await fhirClient.SearchAsync<Encounter>(encounterSearch);
 
@@ -566,8 +628,8 @@ public partial class PatientInformationView
         foreach (OrderItemResult item in orderedResults)
         {
             System.Console.WriteLine(
-                $"Encounter={item.EncounterId}({item.EncounterType}) " +
-                $"OrderType={item.OrderResourceType} Code={item.OrderCode} Display={item.OrderDisplay}");
+                $"就醫紀錄={item.EncounterId}({item.EncounterType}) " +
+                $"醫令類型={item.OrderResourceType} 代碼={item.OrderCode} 顯示名稱={item.OrderDisplay}");
         }
 
         return orderedResults;
@@ -826,9 +888,9 @@ public partial class PatientInformationView
         string InferenceHostApi = SmartAppSettingService.Data.InferenceHostApi;
         string uploadUrl = $"{InferenceHostApi}/dicompack";
 
-        logger.LogInformation($"準備上傳至: {uploadUrl}");
-        logger.LogInformation($"Zip 檔案路徑: {zipFilename}");
-        logger.LogInformation($"Zip 檔案大小: {new FileInfo(zipFilename).Length} bytes");
+        logger.LogInformation($"準備上傳至：{uploadUrl}");
+        logger.LogInformation($"Zip 檔案路徑：{zipFilename}");
+        logger.LogInformation($"Zip 檔案大小：{new FileInfo(zipFilename).Length} 位元組");
 
         HttpClientHandler handler = new HttpClientHandler
         {
@@ -842,7 +904,7 @@ public partial class PatientInformationView
         ByteArrayContent byteContent = new ByteArrayContent(zipBytes);
         form.Add(byteContent, "file", $"{randomNumberKey}.zip");
 
-        logger.LogInformation($"開始上傳，檔案大小: {zipBytes.Length} bytes");
+        logger.LogInformation($"開始上傳，檔案大小：{zipBytes.Length} 位元組");
         HttpResponseMessage response = await httpClient.PostAsync(uploadUrl, form);
 
         if (!response.IsSuccessStatusCode)
@@ -857,8 +919,8 @@ public partial class PatientInformationView
                 errorContent = "無法讀取錯誤內容";
             }
 
-            logger.LogError($"上傳失敗 - HTTP Status: {(int)response.StatusCode}, 錯誤內容: {errorContent}");
-            await UpdateMessageError($"上傳失敗 (HTTP {(int)response.StatusCode})，無法進行 AI 推論作業。錯誤詳情: {errorContent}");
+            logger.LogError($"上傳失敗 - HTTP 狀態碼：{(int)response.StatusCode}，錯誤內容：{errorContent}");
+            await UpdateMessageError($"上傳失敗（HTTP {(int)response.StatusCode}），無法進行 AI 推論作業。錯誤詳情：{errorContent}");
             return;
         }
 
@@ -934,7 +996,7 @@ public partial class PatientInformationView
 
                 if (!downloadResponse.IsSuccessStatusCode)
                 {
-                    string errorMsg = $"下載 AI 推論結果失敗 (HTTP {(int)downloadResponse.StatusCode})";
+                    string errorMsg = $"下載 AI 推論結果失敗（HTTP {(int)downloadResponse.StatusCode}）";
 
                     await InvokeAsync(async () =>
                     {

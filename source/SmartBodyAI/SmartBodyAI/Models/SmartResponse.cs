@@ -25,6 +25,9 @@ public class SmartResponse
     [JsonPropertyName("client_id")]
     public string ClientId { get; set; }
 
+    [JsonPropertyName("fhirUser")]
+    public string FhirUser { get; set; }
+
     [JsonPropertyName("expires_in")]
     public int ExpiresInSeconds { get; set; }
 
