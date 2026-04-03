@@ -1,50 +1,64 @@
-# SmartBodyAI SMART on FHIR Standalone Checklist
+# SmartBodyAI SMART on FHIR standalone app 規格 checklist
 
-## Summary
+## 摘要
 
-- Scope: `standalone only`
-- Supported profile: `SMART standalone patient app + confidential client + PKCE + OIDC`
-- Not supported: `EHR launch`
-- Sensitive setting note: `ClientSecret` must be provided from environment variables or secret storage, not committed to source control
+- 專案範圍：`standalone only`
+- 支援輪廓：`SMART standalone patient app + confidential client + PKCE + OIDC`
+- 不支援範圍：`EHR launch`
+- 敏感設定說明：`ClientSecret` 不應寫死在版本控制內，必須由環境變數或秘密管理機制提供
 
 ## Checklist
 
-| Checklist Item | Status | Implementation | Notes |
+| 項目 | 狀態 | 實作對應 | 說明 |
 | --- | --- | --- | --- |
-| Standalone entry point is available | 已符合 | [Home.razor](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Pages/Home.razor), [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | App can start from `/` without an existing EHR session. |
-| `iss` is accepted as launch input | 已符合 | [Home.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Pages/Home.razor.cs), [LaunchPage.razor](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Pages/LaunchPage.razor), [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | Query `iss` overrides runtime FHIR base URL for SMART launch. |
-| SMART discovery prefers `/.well-known/smart-configuration` | 已符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | Authorization and token endpoints are resolved from well-known metadata when available. |
-| SMART discovery falls back to `/metadata` | 已符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | CapabilityStatement fallback is used when well-known metadata is unavailable. |
-| OAuth2 Authorization Code flow is used | 已符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | Authorization requests always use `response_type=code`. |
-| PKCE with `S256` is used | 已符合 | [PkceHelper.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Helpers/PkceHelper.cs), [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | `code_verifier`, `code_challenge`, and `code_challenge_method=S256` are generated and used. |
-| `state` is generated and validated | 已符合 | [OAuthStateStoreService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Servicers/OAuthStateStoreService.cs), [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | Callback validation now depends on stored state and removes replayable state on failure or success. |
-| Authorization request includes SMART-required parameters | 已符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | Includes `client_id`, `redirect_uri`, `scope`, `state`, `aud`, PKCE parameters, and does not send `launch` for standalone mode. |
-| Token exchange includes `code_verifier` | 已符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | `authorization_code` exchange uses the stored PKCE verifier. |
-| Standalone patient context is required | 已符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [PatientInformationView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/PatientInformationView.razor.cs) | Token responses without `patient` are rejected. |
-| OIDC `id_token` is processed | 已符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [SmartResponse.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Models/SmartResponse.cs) | `id_token` is parsed and validated at the application level. |
-| `fhirUser` claim is required for OIDC mode | 已符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | `id_token` must contain `fhirUser`, `sub`, and `iss`. |
-| SMART standalone capabilities are verified | 已符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs), [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | `launch-standalone`, `context-standalone-patient`, and `permission-patient` are required. |
-| OIDC capability is verified | 已符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs), [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | `sso-openid-connect` is required because this app now requires `id_token` and `fhirUser`. |
-| Confidential client secret is kept out of committed config | 部分符合 | [appsettings.json](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/appsettings.json), [production-environment-variable-sop.md](/D:/Vulcan/GitHub/SmartBodyAI/docs/production-environment-variable-sop.md) | The committed config now leaves `ClientSecret` blank, but deployment must still load it securely at runtime. |
-| Health check reports SMART readiness | 已符合 | [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs), [HealthCheckPage.razor](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Pages/HealthCheckPage.razor) | Health check now reports discovery source, endpoint readiness, standalone capability readiness, and OIDC readiness. |
-| EHR launch is supported | 不適用 | [Home.razor](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Pages/Home.razor), [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | This implementation intentionally does not support EHR launch in this scope. |
+| App 可從 standalone 入口啟動 | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | 可直接從首頁啟動 SMART 授權流程，不依賴 EHR 內嵌上下文。 |
+| 可接受 `iss` 作為啟動輸入 | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | `iss` 可覆寫執行時的 FHIR base URL。 |
+| Standalone 流程不強制依賴 `launch` | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | 目前設計是 standalone only，不把 EHR launch 當成必要條件。 |
+| SMART discovery 優先使用 `/.well-known/smart-configuration` | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | 會先查 SMART well-known metadata。 |
+| SMART discovery 可 fallback 到 `/metadata` | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | 當 well-known metadata 不可用時，會改讀 CapabilityStatement。 |
+| 會解析 `authorization_endpoint` 與 `token_endpoint` | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | 會取得並驗證 authorize/token endpoint。 |
+| 會驗證 standalone 所需 capability | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs), [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 會檢查 `launch-standalone`、`context-standalone-patient`、`permission-patient`。 |
+| 會驗證 OIDC capability | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs), [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 目前設計要求 `sso-openid-connect`。 |
+| 使用 OAuth2 Authorization Code flow | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 授權請求固定使用 `response_type=code`。 |
+| 使用 PKCE 與 `S256` | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 會生成 `code_verifier`、`code_challenge` 與 `code_challenge_method=S256`。 |
+| 使用 `state` 防止重放與 CSRF | 符合 | [OAuthStateStoreService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Servicers/OAuthStateStoreService.cs), [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 會儲存、載回、驗證 `state`，並於成功或失敗後移除。 |
+| 授權請求包含 SMART 必要參數 | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 包含 `client_id`、`redirect_uri`、`scope`、`state`、`aud` 與 PKCE 參數。 |
+| Callback 可接收 `code`、`state`、`error`、`error_description` | 符合 | [PatientInformationPage.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Pages/PatientInformationPage.razor.cs) | callback query 參數已定義。 |
+| Callback 後可從快取恢復 SMART 狀態 | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [PatientInformationView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/PatientInformationView.razor.cs) | 目前會回存並載回 `AuthorizeUrl`、`TokenUrl`、`ClientId`、`ClientSecret`、`RedirectUrl` 等授權必要欄位。 |
+| Token exchange 使用 `authorization_code` | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 以授權碼向 token endpoint 換 token。 |
+| Token exchange 會帶 `code_verifier` | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 會送出先前保存的 PKCE verifier。 |
+| 支援 confidential client + PKCE | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [appsettings.json](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/appsettings.json) | 若有 `ClientSecret`，會用 Basic Auth 呼叫 token endpoint。 |
+| `ClientSecret` 不再寫入 committed config | 部分符合 | [appsettings.json](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/appsettings.json), [production-environment-variable-sop.md](/D:/Vulcan/GitHub/SmartBodyAI/docs/production-environment-variable-sop.md) | committed config 已留空，但正式部署仍必須安全地注入秘密值。 |
+| Token response 會驗證 `token_type=Bearer` | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | `token_type` 不是 `Bearer` 會被拒絕。 |
+| Token response 會驗證 `access_token` | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 缺少 `access_token` 會視為失敗。 |
+| Token response 會驗證 patient context | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 缺少 `patient` 會被拒絕，符合 standalone patient app 的要求。 |
+| Token response 會驗證必要 scopes | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [appsettings.json](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/appsettings.json) | 至少要求 `launch/patient` 與 `patient/*.read`，並搭配 OIDC scopes。 |
+| 已要求 OIDC scopes | 符合 | [appsettings.json](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/appsettings.json) | 設定要求 `openid fhirUser profile`。 |
+| `id_token` 已處理 | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [SmartResponse.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Models/SmartResponse.cs) | 會 parse JWT 並檢查必要 claims。 |
+| `fhirUser` 已處理 | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [SmartResponse.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Models/SmartResponse.cs) | 會從 `id_token` 取出 `fhirUser`。 |
+| 取得 token 後可用 Bearer 呼叫 FHIR API | 符合 | [PatientInformationView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/PatientInformationView.razor.cs) | 會用 Bearer token 存取 Patient、Observation 等資源。 |
+| Health check 可顯示 SMART readiness | 符合 | [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 會顯示 discovery 來源、endpoint readiness、standalone capability readiness 與 OIDC readiness。 |
+| 支援 EHR launch | 不符合 | [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 目前明確是 standalone only，不支援 EHR launch。 |
+| 完整嚴格 OIDC 安全驗證 | 部分符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 目前有 JWT 結構與 claim 驗證，但不是最完整的 OIDC 簽章與信任鏈驗證。 |
 
-## OIDC Support Notes
+## OIDC 支援說明
 
-- The app requires `openid fhirUser profile` in the configured SMART scopes.
-- `id_token` validation is application-level and currently checks JWT structure plus required claims.
-- `fhirUser` is extracted from `id_token` and surfaced through SMART token validation before patient data loading starts.
+- 本專案目前要求 `openid fhirUser profile`。
+- `id_token` 的處理方式是應用層基本驗證，會檢查 JWT 可解析、並驗證 `fhirUser`、`sub`、`iss` 等必要 claims。
+- `fhirUser` 會在 token 驗證階段被擷取，之後才進入病人資料查詢流程。
 
-## Runtime Configuration Notes
+## 執行與部署注意事項
 
-- `ClientSecret` is sensitive and must be injected through environment variables or User Secrets.
-- Recommended runtime variables:
+- `ClientSecret` 屬敏感資訊，應透過環境變數、User Secrets 或秘密管理機制提供。
+- 建議至少提供以下執行時設定：
   - `SmartAppSetting__ClientSecret`
   - `SmartAppSetting__ClientId`
   - `SmartAppSetting__FhirServerUrl`
+- 實際是否可成功完成 SMART 授權，仍取決於外部 authorization server 是否正確註冊 `redirect_uri` 與 client。
 
-## Explicit Non-Goals
+## 限制與總結
 
-- This checklist does not certify EHR launch support.
-- This checklist does not certify asymmetric client authentication.
-- This checklist does not replace external SMART client registration with the target authorization server.
+- 本專案目前屬於 `standalone only`，不應宣稱支援 `EHR launch`。
+- 以目前實作來看，可評為「高度符合 SMART on FHIR standalone app 規格」。
+- 較保守且精確的說法是：已具備 standalone app 的主要規格要件，但不建議宣稱完整 EHR launch 相容。
+- OIDC 目前屬基本應用層驗證，不是最嚴格的完整 OIDC 驗證實作。
