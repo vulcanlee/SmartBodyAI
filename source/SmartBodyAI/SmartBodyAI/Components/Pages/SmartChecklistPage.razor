@@ -1,0 +1,165 @@
+@page "/smart-checklist"
+@layout EmptyLayout
+@using SmartBodyAI.Models
+
+<PageTitle>SMART Checklist</PageTitle>
+
+@if (Model is not null)
+{
+    <div class="smart-checklist-shell">
+        <section class="hero-card">
+            <div class="hero-copy">
+                <p class="eyebrow">Manual Audit Tool</p>
+                <h1>@Model.Title</h1>
+                <p class="hero-subtitle">@Model.Subtitle</p>
+            </div>
+            <div class="hero-score @GetScoreClass(Model.TotalScore)">
+                <div class="hero-score-value">@Model.TotalScore</div>
+                <div class="hero-score-label">總分</div>
+                <div class="hero-score-status">@Model.OverallStatusLabel</div>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <span class="stat-label">綠燈</span>
+                <strong>@Model.GreenCount</strong>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">黃燈</span>
+                <strong>@Model.YellowCount</strong>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">紅燈</span>
+                <strong>@Model.RedCount</strong>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">沙盒判讀</span>
+                <strong>@Model.OverallStatusLabel</strong>
+            </article>
+        </section>
+
+        <section class="panel-card">
+            <div class="panel-heading">
+                <h2>關鍵風險</h2>
+                <p>紅燈與必要黃燈項目會優先列在這裡，方便先處理最可能阻擋 sandbox 的問題。</p>
+            </div>
+            <ul class="bullet-list">
+                @foreach (string risk in Model.KeyRisks)
+                {
+                    <li>@risk</li>
+                }
+            </ul>
+        </section>
+
+        <section class="panel-card">
+            <div class="panel-heading">
+                <h2>分類總覽</h2>
+                <p>每個分類都會依照項目燈號與必要權重即時計算分數。</p>
+            </div>
+            <div class="section-grid">
+                @foreach (SmartChecklistSection checklistSection in Model.Sections)
+                {
+                    <article class="section-card">
+                        <div class="section-topline">
+                            <h3>@checklistSection.Title</h3>
+                            <span class="section-score @GetScoreClass(checklistSection.Score)">@checklistSection.Score 分</span>
+                        </div>
+                        <p>@checklistSection.Summary</p>
+                        <div class="section-meta">
+                            <span>綠 @checklistSection.GreenCount</span>
+                            <span>黃 @checklistSection.YellowCount</span>
+                            <span>紅 @checklistSection.RedCount</span>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+
+        @foreach (SmartChecklistSection checklistSection in Model.Sections)
+        {
+            <section class="panel-card">
+                <div class="panel-heading">
+                    <h2>@checklistSection.Title</h2>
+                    <p>@checklistSection.Summary</p>
+                </div>
+
+                <div class="item-list">
+                    @foreach (SmartChecklistItem item in checklistSection.Items)
+                    {
+                        <article class="item-card">
+                            <div class="item-header">
+                                <div class="item-title-wrap">
+                                    <span class="traffic-light @GetIndicatorClass(item.Status)"></span>
+                                    <div>
+                                        <h3>@item.Title</h3>
+                                        <p class="item-meta">
+                                            @(item.IsRequired ? "必要項目" : "一般項目")
+                                            <span class="dot-separator">•</span>
+                                            權重 @item.Weight
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="status-switches" role="group" aria-label="@item.Title">
+                                    @foreach (HealthIndicatorStatus status in StatusOptions)
+                                    {
+                                        <button type="button"
+                                                class="status-button @(item.Status == status ? GetIndicatorPillClass(status) : "status-neutral")"
+                                                @onclick="() => UpdateStatus(item, status)">
+                                            @GetStatusLabel(status)
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="item-grid">
+                                <div class="info-block">
+                                    <span class="block-label">為什麼要通過</span>
+                                    <p>@item.WhyItMatters</p>
+                                </div>
+                                <div class="info-block">
+                                    <span class="block-label">規則</span>
+                                    <p>@item.Rule</p>
+                                </div>
+                            </div>
+
+                            <div class="editor-grid">
+                                <div class="editor-block">
+                                    <label for="@($"{item.Key}-result")">測試結果說明</label>
+                                    <textarea id="@($"{item.Key}-result")"
+                                              value="@item.TestResult"
+                                              @oninput="args => UpdateText(item, nameof(item.TestResult), args.Value?.ToString())"></textarea>
+                                </div>
+                                <div class="editor-block">
+                                    <label for="@($"{item.Key}-failure")">未通過原因</label>
+                                    <textarea id="@($"{item.Key}-failure")"
+                                              value="@item.FailureReason"
+                                              @oninput="args => UpdateText(item, nameof(item.FailureReason), args.Value?.ToString())"></textarea>
+                                </div>
+                                <div class="editor-block editor-block-wide">
+                                    <label for="@($"{item.Key}-improvement")">改善建議</label>
+                                    <textarea id="@($"{item.Key}-improvement")"
+                                              value="@item.ImprovementSuggestion"
+                                              @oninput="args => UpdateText(item, nameof(item.ImprovementSuggestion), args.Value?.ToString())"></textarea>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </section>
+        }
+
+        <section class="panel-card">
+            <div class="panel-heading">
+                <h2>結果摘要</h2>
+                <p>整理目前尚未全綠的項目，作為下一輪修正與沙盒驗證前的待辦。</p>
+            </div>
+            <ul class="bullet-list">
+                @foreach (string recommendation in Model.FinalRecommendations)
+                {
+                    <li>@recommendation</li>
+                }
+            </ul>
+        </section>
+    </div>
+}
