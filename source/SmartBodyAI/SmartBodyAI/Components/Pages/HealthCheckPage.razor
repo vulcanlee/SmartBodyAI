@@ -2,7 +2,7 @@
 @layout EmptyLayout
 @using SmartBodyAI.Models
 
-<PageTitle>SmartBodyAI Health Check</PageTitle>
+<PageTitle>@(summary?.SystemName ?? "SmartBodyAI Health Check")</PageTitle>
 
 @if (isLoading)
 {
@@ -29,7 +29,11 @@ else if (summary is not null)
         <section class="health-hero">
             <div>
                 <p class="eyebrow">Internal Diagnostics</p>
-                <h1>SmartBodyAI Health Check</h1>
+                <h1>@summary.SystemName</h1>
+                @if (!string.IsNullOrWhiteSpace(summary.SystemVersion))
+                {
+                    <p class="health-muted">版本號: @summary.SystemVersion</p>
+                }
                 <p class="health-muted">檢查時間: @summary.CheckedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss")</p>
                 <p class="health-note">此頁面會完整顯示敏感設定值，僅適合內部維運與除錯使用。</p>
             </div>

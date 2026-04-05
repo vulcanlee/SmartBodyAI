@@ -2,6 +2,7 @@
 
 public class SettingModel
 {
+    public SystemInformationModel SystemInformation { get; set; } = new();
     public string FhirServerUrl { get; set; }
     public string RedirectUrl { get; set; }
     public string ClientId { get; set; }

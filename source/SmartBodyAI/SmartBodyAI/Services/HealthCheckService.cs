@@ -7,6 +7,8 @@ namespace SmartBodyAI.Services;
 
 public class HealthCheckService
 {
+    private const string DefaultSystemName = "SmartBodyAI Health Check";
+
     private readonly SettingService settingService;
     private readonly SmartAppSettingService smartAppSettingService;
     private readonly ConfigurationDiagnosticsService configurationDiagnosticsService;
@@ -37,6 +39,7 @@ public class HealthCheckService
     {
         SettingModel boundSetting = CloneSetting(settingService.GetValue());
         SmartAppSettingModel runtimeSetting = CloneRuntimeSetting(smartAppSettingService.Data);
+        SystemInformationModel systemInformation = boundSetting.SystemInformation ?? new SystemInformationModel();
 
         string effectiveFhirServerUrl = string.IsNullOrWhiteSpace(queryIss) ? runtimeSetting.FhirServerUrl : queryIss!;
         string? effectiveLaunch = string.IsNullOrWhiteSpace(queryLaunch) ? runtimeSetting.Launch : queryLaunch;
@@ -44,6 +47,8 @@ public class HealthCheckService
         HealthCheckSummary summary = new()
         {
             CheckedAt = DateTimeOffset.Now,
+            SystemName = string.IsNullOrWhiteSpace(systemInformation.SystemName) ? DefaultSystemName : systemInformation.SystemName,
+            SystemVersion = systemInformation.SystemVersion ?? string.Empty,
             QueryIss = queryIss,
             QueryLaunch = queryLaunch,
             QueryDebug = queryDebug,
@@ -418,6 +423,7 @@ public class HealthCheckService
     {
         return new SettingModel
         {
+            SystemInformation = CloneSystemInformation(setting.SystemInformation),
             FhirServerUrl = setting.FhirServerUrl,
             RedirectUrl = setting.RedirectUrl,
             ClientId = setting.ClientId,
@@ -430,6 +436,21 @@ public class HealthCheckService
             DicomImagePath = setting.DicomImagePath,
             AIResultPath = setting.AIResultPath,
             IsDebug = setting.IsDebug
+        };
+    }
+
+    private static SystemInformationModel CloneSystemInformation(SystemInformationModel? systemInformation)
+    {
+        if (systemInformation is null)
+        {
+            return new SystemInformationModel();
+        }
+
+        return new SystemInformationModel
+        {
+            SystemName = systemInformation.SystemName ?? string.Empty,
+            SystemDescription = systemInformation.SystemDescription ?? string.Empty,
+            SystemVersion = systemInformation.SystemVersion ?? string.Empty
         };
     }
 

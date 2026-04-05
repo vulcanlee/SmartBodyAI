@@ -5,6 +5,8 @@ namespace SmartBodyAI.Models;
 public class HealthCheckSummary
 {
     public DateTimeOffset CheckedAt { get; set; }
+    public string SystemName { get; set; } = string.Empty;
+    public string SystemVersion { get; set; } = string.Empty;
     public int TotalScore { get; set; }
     public int GreenCount { get; set; }
     public int YellowCount { get; set; }
