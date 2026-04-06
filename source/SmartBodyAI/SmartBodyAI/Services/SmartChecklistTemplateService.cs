@@ -9,6 +9,19 @@ public class SmartChecklistTemplateService
         SmartChecklistPageModel model = new()
         {
             Subtitle = "依據 SMART on FHIR App 啟動與授權設計說明，逐項人工評估 standalone patient app 是否具備通過 sandbox 的條件。",
+            ManualAuditSteps =
+            [
+                "進入頁面後先看總分、整體狀態與關鍵風險，快速判斷是否已有阻擋 sandbox 的必要紅燈。",
+                "依序檢查八個區塊：啟動入口、SMART Discovery、Authorization Request、Callback 驗證、Token Exchange、Token Response、FHIR API 存取、安全性與沙盒準備。",
+                "每個檢查項先讀「為什麼要通過」與「規則」，確認該項目的驗收標準。",
+                "實際到 sandbox、network trace、設定檔或執行流程中驗證後，再選擇綠燈、黃燈或紅燈。",
+                "在每個項目填寫測試結果說明、未通過原因與改善建議。",
+                "每完成一個區塊就檢查分類分數是否合理，避免最後一次修太多項卻不知道哪裡拉低總分。",
+                "全部填完後回到頁首確認是否仍有必要紅燈、必要黃燈，以及關鍵風險清單是否就是當前真正待辦。",
+                "按下儲存，將目前進度寫入本機並建立 JSON 快照。",
+                "需要交接或續做時，匯出 JSON；需要繼續編輯時，匯入既有 JSON 還原頁面狀態。",
+                "在全部必要項目轉綠、總分達標後，再進行完整 sandbox 驗證。"
+            ],
             Sections =
             [
                 CreateLaunchSection(),

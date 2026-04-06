@@ -1,6 +1,7 @@
 @page "/smart-checklist"
 @layout EmptyLayout
 @using SmartBodyAI.Models
+@using Microsoft.AspNetCore.Components.Forms
 
 <PageTitle>SMART Checklist</PageTitle>
 
@@ -18,6 +19,42 @@
                 <div class="hero-score-label">總分</div>
                 <div class="hero-score-status">@Model.OverallStatusLabel</div>
             </div>
+        </section>
+
+        <section class="panel-card">
+            <div class="toolbar">
+                <div>
+                    <p class="eyebrow">Checklist Workspace</p>
+                    <h2>操作與保存</h2>
+                    <p class="toolbar-subtitle">這是人工審查工具。可先完成一輪判讀，再將目前進度儲存到本機或匯出 JSON 交接。</p>
+                </div>
+                <div class="toolbar-actions">
+                    <button type="button" class="action-button action-secondary" @onclick="ResetAsync">新建/重設</button>
+                    <button type="button" class="action-button action-primary" @onclick="SaveAsync">儲存</button>
+                    <button type="button" class="action-button action-secondary" @onclick="ExportAsync">匯出 JSON</button>
+                    <label class="action-button action-secondary import-button">
+                        <span>匯入 JSON</span>
+                        <InputFile OnChange="OnImportJsonAsync" accept=".json,application/json" />
+                    </label>
+                </div>
+            </div>
+            <div class="message-strip @GetMessageClass()">
+                <strong>@GetLastSavedLabel()</strong>
+                <span>@PageMessage</span>
+            </div>
+        </section>
+
+        <section class="panel-card">
+            <div class="panel-heading">
+                <h2>建議操作順序</h2>
+                <p>建議每次都照同一套節奏執行，這樣分數、風險與交接內容會比較一致。</p>
+            </div>
+            <ol class="workflow-list">
+                @foreach (string step in Model.ManualAuditSteps)
+                {
+                    <li>@step</li>
+                }
+            </ol>
         </section>
 
         <section class="stats-grid">

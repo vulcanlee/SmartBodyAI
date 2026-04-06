@@ -49,6 +49,7 @@ namespace SmartBodyAI
                 builder.Services.AddScoped<ConfigurationDiagnosticsService>();
                 builder.Services.AddScoped<HealthCheckService>();
                 builder.Services.AddScoped<SmartChecklistTemplateService>();
+                builder.Services.AddScoped<SmartChecklistPersistenceService>();
                 builder.Services.AddScoped<ISmartDiscoveryService, SmartDiscoveryService>();
                 builder.Services.AddScoped<ISmartAuthorizationService, SmartAuthorizationService>();
                 builder.Services.AddAntDesign();

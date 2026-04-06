@@ -60,6 +60,18 @@ public class SmartChecklistTemplateServiceTests
     }
 
     [Fact]
+    public void CreatePageModel_PopulatesManualAuditSteps()
+    {
+        var service = new SmartChecklistTemplateService();
+
+        var model = service.CreatePageModel();
+
+        Assert.Equal(10, model.ManualAuditSteps.Count);
+        Assert.Contains(model.ManualAuditSteps, step => step.Contains("先看總分"));
+        Assert.Contains(model.ManualAuditSteps, step => step.Contains("匯出 JSON"));
+    }
+
+    [Fact]
     public void Recalculate_ComputesWeightedScoreAndRiskSummary()
     {
         var model = new SmartChecklistPageModel

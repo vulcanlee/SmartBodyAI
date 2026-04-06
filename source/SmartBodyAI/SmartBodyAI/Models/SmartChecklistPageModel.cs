@@ -4,6 +4,7 @@ public class SmartChecklistPageModel
 {
     public string Title { get; set; } = "SMART on FHIR Standalone Sandbox Readiness";
     public string Subtitle { get; set; } = string.Empty;
+    public List<string> ManualAuditSteps { get; set; } = [];
     public List<SmartChecklistSection> Sections { get; set; } = [];
     public int TotalScore { get; set; }
     public int GreenCount { get; set; }
