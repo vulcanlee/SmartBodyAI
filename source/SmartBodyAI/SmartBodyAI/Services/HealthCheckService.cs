@@ -78,6 +78,7 @@ public class HealthCheckService
             BuildDicomStaticPathIndicator(boundSetting.DicomImagePath)
         ];
 
+        await Task.Delay(100, cancellationToken);
         ExternalFhirCheckResult fhirCheck = await CheckFhirAsync(effectiveFhirServerUrl, cancellationToken);
         summary.ResolvedAuthorizeUrl = fhirCheck.AuthorizeUrl;
         summary.ResolvedTokenUrl = fhirCheck.TokenUrl;
