@@ -9,4 +9,5 @@ public class SmartAuthorizationRequestContext
     public string? ClientSecret { get; set; }
     public string RedirectUrl { get; set; } = string.Empty;
     public string Scope { get; set; } = string.Empty;
+    public string Launch { get; set; } = string.Empty;
 }

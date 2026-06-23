@@ -1,13 +1,15 @@
 ﻿@page "/launch"
 @layout EmptyLayout
 
-<LaunchView ShowMode="true" Iss="@ISS" IsDebug="@IsDebug"  />
+<LaunchView ShowMode="true" Iss="@ISS" IsDebug="@IsDebug" LaunchCode="@Launch" />
 
 @code {
     [SupplyParameterFromQuery(Name = "iss")]
     public string? ISS { get; set; }
     [SupplyParameterFromQuery(Name = "debug")]
     public bool IsDebug { get; set; }
+    [SupplyParameterFromQuery(Name = "launch")]
+    public string? Launch { get; set; }
     [SupplyParameterFromQuery(Name = "code")]
     public string? Code { get; set; }
     [SupplyParameterFromQuery(Name = "state")]

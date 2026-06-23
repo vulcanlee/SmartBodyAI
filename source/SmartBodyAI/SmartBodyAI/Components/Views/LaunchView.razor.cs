@@ -106,7 +106,8 @@ public partial class LaunchView
                     ClientId = SmartAppSettingService.Data.ClientId,
                     ClientSecret = SmartAppSettingService.Data.ClientSecret,
                     RedirectUrl = SmartAppSettingService.Data.RedirectUrl,
-                    Scope = SmartAppSettingService.Data.AuthorizationScope
+                    Scope = SmartAppSettingService.Data.AuthorizationScope,
+                    Launch = SmartAppSettingService.Data.Launch
                 });
 
             SmartAppSettingService.Data.State = authorizationRequest.State;

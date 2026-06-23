@@ -43,6 +43,34 @@ public class SmartAuthorizationServiceTests
     }
 
     [Fact]
+    public async Task CreateAuthorizationRequestAsync_BuildsEhrLaunchAuthorizeUrlWithLaunchParameter()
+    {
+        var stateStore = CreateStateStore();
+        var service = new SmartAuthorizationService(() => new HttpClient(new StubHttpMessageHandler(_ => throw new InvalidOperationException())), stateStore);
+
+        var context = new SmartAuthorizationRequestContext
+        {
+            FhirServerUrl = "https://fhir.example/fhir",
+            AuthorizeUrl = "https://auth.example/authorize",
+            TokenUrl = "https://auth.example/token",
+            ClientId = "smart-app",
+            RedirectUrl = "https://app.example/patient-information",
+            Scope = "openid fhirUser profile patient/*.read",
+            Launch = "launch-context-123"
+        };
+
+        var request = await service.CreateAuthorizationRequestAsync(context.AuthorizeUrl, context);
+        var storedState = await stateStore.LoadAsync<SmartAppSettingModel>(request.State);
+
+        var decodedUrl = WebUtility.UrlDecode(request.AuthorizationUrl);
+        Assert.Contains("launch=launch-context-123", decodedUrl);
+        Assert.Contains("scope=openid fhirUser profile patient/*.read launch", decodedUrl);
+        Assert.NotNull(storedState);
+        Assert.Equal("launch-context-123", storedState!.Launch);
+        Assert.Equal("openid fhirUser profile patient/*.read launch", storedState.AuthorizationScope);
+    }
+
+    [Fact]
     public async Task CreateAuthorizationRequestAsync_PersistsEndpointsAndClientCredentialsInStateStore()
     {
         var stateStore = CreateStateStore();
@@ -149,6 +177,41 @@ public class SmartAuthorizationServiceTests
         Assert.Equal("patient-123", result.PatientId);
         Assert.Equal("Practitioner/123", result.FhirUser);
         Assert.Null(await stateStore.LoadAsync<SmartAppSettingModel>(state));
+    }
+
+    [Fact]
+    public async Task ExchangeCodeForTokenAsync_AcceptsEhrLaunchScope()
+    {
+        var stateStore = CreateStateStore();
+        var state = await SeedStateAsync(stateStore);
+        var idToken = BuildJwt(("fhirUser", "Practitioner/123"), ("sub", "user-1"), ("iss", "https://issuer.example"));
+        var tokenJson = $$"""
+        {
+          "token_type": "Bearer",
+          "access_token": "access-token",
+          "scope": "openid fhirUser profile launch patient/*.read",
+          "patient": "patient-123",
+          "id_token": "{{idToken}}"
+        }
+        """;
+
+        var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(tokenJson, Encoding.UTF8, "application/json")
+        });
+
+        var service = new SmartAuthorizationService(() => new HttpClient(handler), stateStore);
+
+        var result = await service.ExchangeCodeForTokenAsync(
+            "https://auth.example/token",
+            code: "auth-code",
+            state,
+            "smart-app",
+            null,
+            "https://app.example/patient-information");
+
+        Assert.True(result.IsValid);
+        Assert.Equal("patient-123", result.PatientId);
     }
 
     [Fact]

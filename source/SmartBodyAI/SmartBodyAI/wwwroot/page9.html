@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>九大透明性｜CanWellBeing/肯威比（ABD_CAD V1.0.2）</title>
+
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --brand:#2563eb;
+      --brand2:#1d4ed8;
+      --chip:#eef2ff;
+      --warn:#b45309;
+      --shadow: 0 8px 24px rgba(17,24,39,.08);
+      --radius: 16px;
+      --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.7;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    .container{
+      max-width:1400px;
+      margin:0 auto;
+      padding:24px;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    header{
+      grid-column:1 / -1;
+      background:linear-gradient(135deg, #ffffff 0%, #f1f5ff 70%, #e8efff 100%);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:22px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+
+    .title{
+      min-width:280px;
+    }
+    .title h1{
+      margin:0;
+      font-size:24px;
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+      max-width:900px;
+    }
+
+    .pill{
+      background: rgba(37,99,235,.08);
+      border:1px solid rgba(37,99,235,.18);
+      color:var(--brand2);
+      padding:8px 14px;
+      border-radius: 999px;
+      font-size:13px;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      white-space:nowrap;
+      line-height:1.4;
+    }
+    .pill b{ font-weight:700; color:var(--brand2); }
+
+    /* Sidebar */
+    .sidebar{
+      position:sticky;
+      top:16px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .sidebar h2{
+      font-size:14px;
+      color:var(--muted);
+      margin:0 0 10px;
+      letter-spacing:.4px;
+    }
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .nav a{
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid transparent;
+      font-size:14px;
+      color:#111827;
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+    }
+    .nav a:hover{
+      background:#f3f4f6;
+    }
+    .nav a.active{
+      background: rgba(37,99,235,.10);
+      border-color: rgba(37,99,235,.20);
+      color: var(--brand2);
+    }
+    .num{
+      min-width:24px;
+      height:24px;
+      border-radius: 999px;
+      background: var(--chip);
+      color: var(--brand2);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:700;
+      margin-top:1px;
+    }
+
+    /* Main content */
+    main{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    details.card{
+      padding:0;
+    }
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding:16px 18px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      user-select:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .section-title{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      font-weight:800;
+      font-size:16px;
+    }
+    .chev{
+      width:34px;
+      height:34px;
+      border-radius: 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid var(--line);
+      color:var(--muted);
+      flex:0 0 auto;
+    }
+    details[open] .chev{
+      transform: rotate(180deg);
+      transition:.2s ease;
+    }
+
+    .content{
+      padding:0 18px 16px;
+      border-top:1px dashed var(--line);
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    .kv{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px;
+      background:#fbfbfd;
+    }
+    .kv .k{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+    .kv .v{
+      font-size:14px;
+      font-weight:700;
+    }
+
+    ul{ margin:8px 0 0; padding-left:18px; }
+    li{ margin:4px 0; }
+
+    .chips{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 0; }
+    .chip{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(37,99,235,.18);
+      background: var(--chip);
+      color: var(--brand2);
+      font-weight:700;
+    }
+
+    .callout{
+      margin-top:10px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(180,83,9,.25);
+      background: rgba(251,191,36,.12);
+      color:#92400e;
+      font-size:14px;
+    }
+
+    .muted{ color:var(--muted); }
+    .footer{
+      margin:10px 0 30px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px){
+      .container{
+        grid-template-columns: 1fr;
+      }
+      .sidebar{
+        position:relative;
+        top:0;
+      }
+      .nav{
+        flex-direction:row;
+        flex-wrap:wrap;
+      }
+      .nav a{
+        width:calc(50% - 6px);
+      }
+    }
+    @media (max-width: 520px){
+      .nav a{ width:100%; }
+      .grid2{ grid-template-columns:1fr; }
+      header{ padding:18px 16px; }
+      .meta{ justify-content:flex-start; max-width:100%; }
+      .top{ gap:16px; }
+    }
+
+    /* Print */
+    @media print{
+      body{ background:white; }
+      .container{ max-width:100%; padding:0; grid-template-columns:1fr; }
+      .sidebar{ display:none; }
+      header, .card{ box-shadow:none; border-radius:0; border-left:0; border-right:0; }
+      details.card{ break-inside:avoid; }
+      summary{ cursor:default; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="top">
+        <div class="title">
+          <h1>九大透明性揭露</h1>
+          <p>「成功大學」腹部肌群醫療影像分析軟體（CanWellBeing / 肯威比）｜產品代碼 ABD_CAD（V1.0.2）</p>
+        </div>
+        <div class="meta">
+          <div class="pill"><b>許可證</b> 衛部醫器製字第 007902 號（更版中）</div>
+          <div class="pill"><b>類型</b> Stand-alone SaMD｜TFDA 第二等級</div>
+          <div class="pill"><b>處理時間</b> 約 5–10 秒</div>
+          <div class="pill"><b>聯絡</b> 06-7035223</div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <h2>章節導覽</h2>
+      <nav class="nav" id="nav">
+        <a href="#s1"><span class="num">1</span> 產品基本資訊</a>
+        <a href="#s2"><span class="num">2</span> AI 詳情及輸出</a>
+        <a href="#s3"><span class="num">3</span> AI 目的（預期用途）</a>
+        <a href="#s4"><span class="num">4</span> 警告與範圍外使用</a>
+        <a href="#s5"><span class="num">5</span> 開發詳情與輸入特徵</a>
+        <a href="#s6"><span class="num">6</span> 公平性確保過程</a>
+        <a href="#s7"><span class="num">7</span> 外部驗證過程</a>
+        <a href="#s8"><span class="num">8</span> 模型表現指標</a>
+        <a href="#s9"><span class="num">9</span> 持續維護</a>
+        <a href="#s10"><span class="num">10</span> 更新與持續驗證計畫</a>
+      </nav>
+    </aside>
+
+    <main>
+      <!-- 1 -->
+      <details class="card" id="s1" open>
+        <summary>
+          <div class="section-title"><span class="num">1</span> 產品基本資訊</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv"><div class="k">產品名稱</div><div class="v">「成功大學」腹部肌群醫療影像分析軟體（CanWellBeing / 肯威比）</div></div>
+            <div class="kv"><div class="k">申請單位</div><div class="v">巨明生醫股份有限公司（Mega Radiance Co., Ltd.）</div></div>
+            <div class="kv"><div class="k">許可證字號</div><div class="v">衛部醫器製字第 007902 號（更版中）</div></div>
+            <div class="kv"><div class="k">產品代碼 / 版次</div><div class="v">ABD_CAD（V1.0.2）</div></div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 2 -->
+      <details class="card" id="s2" open>
+        <summary>
+          <div class="section-title"><span class="num">2</span> AI 詳情及輸出</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv"><div class="k">產品類型</div><div class="v">獨立醫療器材軟體（Stand-alone SaMD）｜TFDA 第二等級</div></div>
+            <div class="kv"><div class="k">功能定位</div><div class="v">腹部 CT L3（第三腰椎）身體組成分析</div></div>
+            <div class="kv"><div class="k">輸出格式</div><div class="v">PNG、JSON、CSV、PDF</div></div>
+            <div class="kv"><div class="k">處理時間</div><div class="v">約 5–10 秒</div></div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">五大肌群標記與分析</div>
+            <ul>
+              <li>第一：後脊旁肌（posterior paraspinal muscles, PSM）</li>
+              <li>第二：腰肌（psoas muscle, PM）</li>
+              <li>第三：腰方肌（quadratus lumborum muscle, QLM）</li>
+              <li>第四：側腹壁肌（lateral wall muscles, LWM）</li>
+              <li>第五：腹直肌（rectus abdominis muscle, RM）</li>
+            </ul>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">AI 輸出項目</div>
+            <div class="chips">
+              <span class="chip">SMA</span>
+              <span class="chip">SMD</span>
+              <span class="chip">SMI</span>
+              <span class="chip">SMG</span>
+            </div>
+            <ul style="margin-top:8px;font-size:13px;">
+              <li><b>SMA</b>（骨骼肌面積，單位 cm²）：總面積</li>
+              <li><b>SMD</b>（骨骼肌密度，單位 HU）：肌肉密度，以 Hounsfield unit 表示</li>
+              <li><b>SMI</b>（骨骼肌指數，單位 cm²/m²）：SMI = SMA / 身高²</li>
+              <li><b>SMG</b>（骨骼肌質量，單位 AU）：SMG = SMI × SMD</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <!-- 3 -->
+      <details class="card" id="s3" open>
+        <summary>
+          <div class="section-title"><span class="num">3</span> AI 目的（預期用途）</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <ul>
+            <li>將電腦斷層掃描（CT）原始資料進行數位影像分析</li>
+            <li>針對 L3 椎體切面分析身體組成中「五大肌群」</li>
+            <li>提供臨床醫師、營養師、研究人員作為參考依據</li>
+          </ul>
+          <div class="callout">
+            ⚠️ 重要聲明：最終臨床判讀仍由專業醫事人員決定；本產品標記不應影響醫師原始診斷判斷。
+          </div>
+        </div>
+      </details>
+
+      <!-- 4 -->
+      <details class="card" id="s4" open>
+        <summary>
+          <div class="section-title"><span class="num">4</span> AI 的警告與範圍外使用</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">輸入影像限制</div>
+              <ul>
+                <li>僅適用「無顯影劑」CT DICOM 影像</li>
+                <li>僅適用 L3 第三腰椎切面</li>
+                <li>採用標準 DICOM 3.0 格式</li>
+                <li>層厚介於 0.5 毫米至 2.7 毫米</li>
+              </ul>
+            </div>
+            <div class="kv">
+              <div class="k">適用族群</div>
+              <ul>
+                <li>20 歲至 80 歲成年人之 L3 第三腰椎 CT 影像</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">不適用族群（異常使用情況）</div>
+            <ul>
+              <li>會導入顯影劑的影像（切面出現強對比物質、影響分割效果）</li>
+              <li>非人工選定 L3 第三腰椎 CT 影像</li>
+              <li>塌陷性骨折之 L3 第三腰椎 CT 影像</li>
+              <li>呼吸晃動假影或影像 L3 第三腰椎 CT 影像</li>
+              <li>脊椎側彎之 L3 第三腰椎 CT 影像</li>
+            </ul>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">警告與使用注意事項</div>
+            <ul>
+              <li>為避免誤判，請仔細檢視、複製、標註或刪除標註</li>
+              <li>使用前應先以檢視器確認所有標註的區域</li>
+              <li>請勿於不符合作業條件下使用本產品</li>
+              <li>若輸出結果明顯不符合實際，請勿採納並謹慎使用</li>
+              <li>最終臨床診斷與處置仍由專業醫事人員依據其專業判斷，根據影像外觀來決定後續需採取的行動方案</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <!-- 5 -->
+      <details class="card" id="s5" open>
+        <summary>
+          <div class="section-title"><span class="num">5</span> AI 開發詳情與輸入特徵</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">輸入資料規格</div>
+              <ul>
+                <li>腹部 CT 單一 L3 椎體切面</li>
+                <li>DICOM 3.0 格式</li>
+                <li>影像尺寸：512 × 512 像素</li>
+                <li>無顯影劑影像</li>
+                <li>層厚範圍：0.5 ～ 2.7 毫米</li>
+              </ul>
+            </div>
+            <div class="kv">
+              <div class="k">建議使用設備</div>
+              <ul>
+                <li>建議廠牌：Siemens 電腦斷層掃描器</li>
+                <li>若廠牌為其他廠商設備，使用者需確認其標準流程與設定參數是否與本產品相容</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">系統最低軟硬體需求</div>
+            <div class="grid2" style="margin-top:8px;">
+              <div style="font-size:13px;"><b>處理器（CPU）：</b>Intel i7 或以上等級</div>
+              <div style="font-size:13px;"><b>作業系統：</b>Windows 10.0</div>
+              <div style="font-size:13px;"><b>記憶體（RAM）：</b>8GB 以上</div>
+              <div style="font-size:13px;"><b>可用硬碟空間：</b>500GB</div>
+              <div style="font-size:13px;"><b>檔案格式：</b>DICOM</div>
+              <div style="font-size:13px;"><b>影像尺寸：</b>512 × 512</div>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">硬體與環境需求</div>
+            <ul>
+              <li>以隨身碟容量 ≥ 500GB 之隨身碟專門傳輸 CT DICOM 檔</li>
+              <li>螢幕 17 吋以上，建議解析度 1920 × 1080 或以上</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <!-- 6 -->
+      <details class="card" id="s6" open>
+        <summary>
+          <div class="section-title"><span class="num">6</span> 確保 AI 開發公平性之過程</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">訓練資料集來源與標註</div>
+              <ul>
+                <li>訓練資料集：185 張臨床 CT 影像（佔 60%）</li>
+                <li>獨立測試資料集：2 組 × 63 張（共 126 張，佔 40%）</li>
+                <li>資料來源：臨床實際 CT 影像</li>
+              </ul>
+            </div>
+            <div class="kv">
+              <div class="k">標註流程與品質</div>
+              <ul>
+                <li>標註模式：由放射科專家進行人工標定標註，建立真實基準（ground truth）</li>
+                <li>標註執行者：專業訓練過的醫事人員</li>
+                <li>標註內容：L3 椎體五大肌群（PSM、PM、QLM、LWM、RM）的區塊與標定</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">族群定義與限制</div>
+            <ul>
+              <li><b>明確定義，僅用於：</b>20-80 歲成年人</li>
+              <li><b>排除條件：</b>排除導入物、人工造口、塌陷性骨折、呼吸晃動假影、脊椎側彎等特殊狀況</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <!-- 7 -->
+      <details class="card" id="s7" open>
+        <summary>
+          <div class="section-title"><span class="num">7</span> 外部驗證過程</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">法規認證</div>
+              <ul>
+                <li>TFDA 第二等級醫療器材</li>
+                <li>許可證字號：衛部醫器製字第 007902 號（更版中）</li>
+              </ul>
+            </div>
+            <div class="kv">
+              <div class="k">醫療器材登記資訊</div>
+              <ul>
+                <li>地址：台南市東區大學路 1 號 3 樓（B 室）</li>
+                <li>醫療器材商名稱：國立成功大學</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">獎項與肯定</div>
+            <ul>
+              <li>國家新創獎</li>
+              <li>國家精進獎</li>
+              <li>多國專利布局</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <!-- 8 -->
+      <details class="card" id="s8" open>
+        <summary>
+          <div class="section-title"><span class="num">8</span> 模型表現的量化指標</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">分割準確度</div>
+              <div class="v">平均分割準確度 &gt; 92%</div>
+            </div>
+            <div class="kv">
+              <div class="k">臨床試驗基準</div>
+              <div class="v">Non-inferiority margin：15%</div>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">相關係數（R）</div>
+            <ul>
+              <li>SMA（cm²）&gt; 0.90</li>
+              <li>SMD（HU）&gt; 0.90</li>
+              <li>SMI（cm²/m²）&gt; 0.90</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <!-- 9 -->
+      <details class="card" id="s9" open>
+        <summary>
+          <div class="section-title"><span class="num">9</span> AI 實施與使用的持續維護</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">部署方式</div>
+              <ul>
+                <li>Stand-alone SaMD</li>
+                <li>專人到場安裝</li>
+                <li>無需網路連線</li>
+                <li>透過 ≥500GB 隨身碟進行資料交換</li>
+              </ul>
+            </div>
+            <div class="kv">
+              <div class="k">產品服務與技術支援</div>
+              <ul>
+                <li>自動影像檢核（檔案格式、影像尺寸）</li>
+                <li>警告/提示/資訊/錯誤訊息視窗</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">資料保護聲明</div>
+            <ul>
+              <li>涉及個資蒐集、處理與利用</li>
+              <li>全程遵守《個人資料保護法》規定</li>
+            </ul>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">聯絡資訊</div>
+            <div class="callout" style="margin-top:8px;">
+              📧 Email：<b>service@megaradiance.com</b><br>
+              📞 電話：<b>06-7035223</b>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 10 -->
+      <details class="card" id="s10" open>
+        <summary>
+          <div class="section-title"><span class="num">10</span> 更新、持續驗證與公平性評估計畫</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="content">
+          <div class="grid2">
+            <div class="kv">
+              <div class="k">版本管理</div>
+              <ul>
+                <li>目前版次：V1.0.2</li>
+                <li>TFDA 更版查驗中</li>
+              </ul>
+            </div>
+            <div class="kv">
+              <div class="k">持續驗證計畫</div>
+              <ul>
+                <li>持續於成大醫院等醫學中心進行驗證</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">持續驗證計畫</div>
+            <ul>
+              <li>持續於成大醫院等醫學中心進行臨床驗證</li>
+              <li>建立驗證數據資料庫與臨床應用實證</li>
+            </ul>
+          </div>
+
+          <div class="kv" style="margin-top:12px;">
+            <div class="k">延伸應用規劃</div>
+            <ul>
+              <li>可擴展為「肌少症」風險預測性評估</li>
+              <li>健檢主動式健康管理</li>
+              <li>保險與公衛族群風險分層</li>
+              <li>規劃 Smart on FHIR 互通架構與 EMR 回寫整合功能</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <div class="footer">
+        © 靜態頁示意｜可直接列印或另存為 PDF（建議用瀏覽器列印功能）
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        const id = a.getAttribute('href');
+        const el = document.querySelector(id);
+        if(!el) return;
+        e.preventDefault();
+        el.scrollIntoView({behavior:'smooth', block:'start'});
+        history.replaceState(null, '', id);
+      });
+    });
+
+    // Active nav highlight (IntersectionObserver)
+    const links = Array.from(document.querySelectorAll('#nav a'));
+    const map = new Map(links.map(l => [l.getAttribute('href'), l]));
+    const sections = Array.from(document.querySelectorAll('main > details.card'));
+
+    const io = new IntersectionObserver((entries)=>{
+      const visible = entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+      if(!visible) return;
+      const id = '#'+visible.target.id;
+      links.forEach(l=>l.classList.remove('active'));
+      const active = map.get(id);
+      if(active) active.classList.add('active');
+    }, { rootMargin: "-20% 0px -70% 0px", threshold:[0.1,0.2,0.3,0.5,0.7] });
+
+    sections.forEach(s=>io.observe(s));
+  </script>
+</body>
+</html>

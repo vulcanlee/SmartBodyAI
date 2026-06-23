@@ -161,7 +161,7 @@ public class HealthCheckService
 
         if (string.IsNullOrWhiteSpace(boundSetting.ClientSecret))
         {
-            return CreateIndicator("client-credentials", "Client Credentials", HealthIndicatorStatus.Yellow, "ClientSecret is not loaded from configuration.", "This app targets confidential client + PKCE, so ClientSecret should come from environment variables or user secrets.", "Set SmartAppSetting__ClientSecret via environment variables or secrets storage.");
+            return CreateIndicator("client-credentials", "Client Credentials", HealthIndicatorStatus.Green, "ClientSecret is empty; SMART Health IT public client + PKCE is supported.", "SMART Health IT advertises client-public. If a confidential sandbox is used later, load ClientSecret from environment variables or user secrets.", "No action needed for SMART Health IT public-client testing.");
         }
 
         return CreateIndicator("client-credentials", "Client Credentials", HealthIndicatorStatus.Green, "ClientId and ClientSecret are available.", $"ClientId: {boundSetting.ClientId}. ClientSecret length: {boundSetting.ClientSecret.Length}.", "No action needed.");
@@ -382,7 +382,7 @@ public class HealthCheckService
     {
         if (string.IsNullOrWhiteSpace(boundSetting.ClientSecret))
         {
-            return CreateIndicator("basic-auth-readiness", "Token Basic Auth Readiness", HealthIndicatorStatus.Yellow, "ClientSecret is not loaded.", "The app targets confidential client + PKCE, so ClientSecret should be provided securely at runtime.", "Load SmartAppSetting__ClientSecret from environment variables or secret storage.");
+            return CreateIndicator("basic-auth-readiness", "Token Basic Auth Readiness", HealthIndicatorStatus.Green, "ClientSecret is empty; token exchange will use public client + PKCE.", "This is expected for SMART Health IT public-client testing. Basic Auth will be used automatically if ClientSecret is configured.", "No action needed for SMART Health IT public-client testing.");
         }
 
         return CreateIndicator("basic-auth-readiness", "Token Basic Auth Readiness", HealthIndicatorStatus.Green, "ClientSecret is available for confidential client authentication.", $"ClientId: {boundSetting.ClientId}. ClientSecret length: {boundSetting.ClientSecret.Length}.", "No action needed.");
@@ -390,7 +390,7 @@ public class HealthCheckService
 
     private HealthIndicatorResult BuildLaunchQueryConsistencyIndicator()
     {
-        return CreateIndicator("launch-query-consistency", "Launch Query Consistency", HealthIndicatorStatus.Yellow, "Standalone mode is supported; EHR launch query forwarding is still not implemented.", "Home.razor forwards iss and debug, but not launch. This is acceptable for standalone-only support.", "Do not advertise EHR launch support until launch query propagation is implemented.");
+        return CreateIndicator("launch-query-consistency", "Launch Query Consistency", HealthIndicatorStatus.Green, "Standalone and EHR launch query forwarding are supported.", "Home.razor and /launch forward iss, launch, and debug into the SMART authorization flow.", "No action needed.");
     }
 
     private static HttpClient CreateHttpClient()

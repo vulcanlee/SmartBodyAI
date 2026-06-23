@@ -11,12 +11,6 @@ namespace SmartBodyAI.Services;
 
 public class SmartAuthorizationService : ISmartAuthorizationService
 {
-    private static readonly string[] RequiredPatientScopes =
-    [
-        "launch/patient",
-        "patient/*.read"
-    ];
-
     private readonly Func<HttpClient> clientFactory;
     private readonly OAuthStateStoreService stateStore;
 
@@ -51,11 +45,13 @@ public class SmartAuthorizationService : ISmartAuthorizationService
             ClientId = context.ClientId,
             ClientSecret = context.ClientSecret,
             RedirectUrl = context.RedirectUrl,
-            AuthorizationScope = context.Scope
+            AuthorizationScope = BuildScope(context.Scope, context.Launch),
+            Launch = context.Launch
         };
 
         await stateStore.SaveAsync(state, persistedState, TimeSpan.FromMinutes(10), cancellationToken);
 
+        var scope = persistedState.AuthorizationScope;
         var url = QueryHelpers.AddQueryString(
             authorizeUrl,
             new Dictionary<string, string?>
@@ -63,9 +59,10 @@ public class SmartAuthorizationService : ISmartAuthorizationService
                 ["response_type"] = "code",
                 ["client_id"] = context.ClientId,
                 ["redirect_uri"] = context.RedirectUrl,
-                ["scope"] = context.Scope,
+                ["scope"] = scope,
                 ["state"] = state,
                 ["aud"] = context.FhirServerUrl,
+                ["launch"] = context.Launch,
                 ["code_challenge"] = codeChallenge,
                 ["code_challenge_method"] = SmartAppSettingModel.DefaultCodeChallengeMethod
             }
@@ -208,12 +205,14 @@ public class SmartAuthorizationService : ISmartAuthorizationService
             result.Errors.Add("Token 回應缺少病人內容資訊。");
         }
 
-        foreach (var requiredScope in RequiredPatientScopes)
+        if (!ContainsScope(response.Scopes, "patient/*.read"))
         {
-            if (!ContainsScope(response.Scopes, requiredScope))
-            {
-                result.Errors.Add($"Token 回應缺少必要的 scope「{requiredScope}」。");
-            }
+            result.Errors.Add("Token response is missing required scope `patient/*.read`.");
+        }
+
+        if (!ContainsScope(response.Scopes, "launch/patient") && !ContainsScope(response.Scopes, "launch"))
+        {
+            result.Errors.Add("Token response is missing patient launch context scope `launch/patient` or `launch`.");
         }
 
         if (!ContainsScope(response.Scopes, "openid")
@@ -272,5 +271,15 @@ public class SmartAuthorizationService : ISmartAuthorizationService
         return scopes
             .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Contains(targetScope, StringComparer.Ordinal);
+    }
+
+    private static string BuildScope(string scope, string? launch)
+    {
+        if (string.IsNullOrWhiteSpace(launch) || ContainsScope(scope, "launch"))
+        {
+            return scope;
+        }
+
+        return $"{scope} launch";
     }
 }
