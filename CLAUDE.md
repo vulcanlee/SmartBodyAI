@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
@@ -70,4 +70,20 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 * 所有文件都要採用 UTF-8 繁體中文編碼，並且不能夠有亂碼存在（`docs/` 下 `.md` 須**含 BOM**，CI 以 `scripts/Test-DocsEncoding.ps1` 遞迴強制）
 
 * 每次有異動後，要確認相關文件也要進行更新
+
+---
+
+## 專案文件導引（動手前必讀）
+
+本專案的完整文件體系位於 `docs/`。**新增需求或修正錯誤前，請先閱讀文件，依其約束收斂做法，不要做出違反文件的變更。**
+
+建議閱讀順序：
+
+1. [`docs/README.md`](docs/README.md) — 文件總索引，依任務類型導引該讀哪些文件。
+2. [`docs/guidelines/constraints.md`](docs/guidelines/constraints.md) — **不可違反的硬性約束（C-1～C-10）**，最優先。
+3. [`docs/guidelines/`](docs/guidelines/) 其餘：`coding-conventions`（命名/目錄/編碼慣例）、`versioning`（版本號規則）、`contributing`（建置/測試/提交流程）。
+4. 視任務參閱 [`docs/prd/`](docs/prd/)（需求）、[`docs/architecture/`](docs/architecture/)（架構與 ADR）、[`docs/reference/`](docs/reference/)（設定/API/術語）、[`docs/operations/`](docs/operations/)（部署/測試）。
+5. 變更後依 [`docs/guidelines/contributing.md`](docs/guidelines/contributing.md) 同步更新 [`docs/changelog/CHANGELOG.md`](docs/changelog/CHANGELOG.md)。
+
+若文件與程式碼矛盾，以程式碼與設定檔為事實來源，並回報修正文件。
 

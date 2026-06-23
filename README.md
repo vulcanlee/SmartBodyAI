@@ -1,4 +1,4 @@
-# SmartBodyAI
+﻿# SmartBodyAI
 
 SmartBodyAI 是一個結合 `SMART on FHIR`、`DICOM` 與 AI 推論流程的醫療應用示範專案。  
 此專案使用 `ASP.NET Core Blazor Server` 建立前端互動流程，並透過獨立的 API 專案處理 DICOM 壓縮包上傳、AI 推論整合與結果下載。
@@ -183,21 +183,31 @@ dotnet test source/SmartBodyAI/SmartBodyAI.Tests/SmartBodyAI.Tests.csproj
 
 ## 文件參考
 
-以下文件值得在交接或除錯時一起閱讀：
+完整的文件體系集中於 `docs/`，**請先讀文件總索引** [`docs/README.md`](docs/README.md)，它會依任務類型（新增功能 / 修 bug / 調設定 / 發版）導引該讀哪些文件。
 
-- `docs/SMART on FHIR App 啟動與授權設計說明.md`
+動手前必讀（約束與規範）：
+
+- [`docs/guidelines/constraints.md`](docs/guidelines/constraints.md)
+  - 不可違反的硬性約束清單（C-1～C-10）
+- [`docs/guidelines/coding-conventions.md`](docs/guidelines/coding-conventions.md)、[`versioning.md`](docs/guidelines/versioning.md)、[`contributing.md`](docs/guidelines/contributing.md)
+
+主要文件：
+
+- [`docs/prd/product-requirements.md`](docs/prd/product-requirements.md)
+  - 產品需求文件（定位、功能與非功能需求）
+- [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md)
+  - 系統架構、核心流程；另含 [`adr/`](docs/architecture/adr/) 決策紀錄
+- [`docs/architecture/SMART on FHIR App 啟動與授權設計說明.md`](docs/architecture/SMART%20on%20FHIR%20App%20啟動與授權設計說明.md)
   - 補充 SMART discovery、授權流程、callback 與 token exchange 設計背景
-- `docs/smart-on-fhir-standalone-checklist.md`
-  - 說明目前 standalone 模式的實作範圍與檢查項
-- `docs/production-environment-variable-sop.md`
-  - 補充正式環境的 `ClientId` / `ClientSecret` 管理方式
-- `docs/second-stage-testing-checklist.md`
-  - 補充第二階段手動驗證重點
-- `docs/fhir-sample-bundle.json`
-  - 提供 FHIR 測試資料結構範例
+- [`docs/reference/`](docs/reference/)
+  - 設定參數參考表、API 端點、術語表
+- [`docs/operations/`](docs/operations/)
+  - 正式環境變數 SOP、測試清單、standalone 檢查表、FHIR 測試資料範例
+- [`docs/changelog/CHANGELOG.md`](docs/changelog/CHANGELOG.md)
+  - 版本變更紀錄
 
 ## 已知限制
 
 - `SmartAgentApi` 依賴外部 `CTMS` 專案，缺少相依原始碼時無法完整建置
-- `docs/` 內部分既有文件可能有編碼問題，閱讀時若出現亂碼，請以程式碼與設定檔為主要事實來源
+- `docs/` 下所有 `.md` 已統一為 UTF-8 含 BOM 並通過 `scripts/Test-DocsEncoding.ps1` 檢驗；若仍發現與程式碼不一致處，請以程式碼與設定檔為主要事實來源
 - 目前 README 以開發交接為主，不是對外產品文件
