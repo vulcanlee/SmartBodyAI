@@ -25,24 +25,32 @@ public partial class HealthCheckPage
     protected bool isLoading = true;
     protected string? loadError;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            isLoading = true;
+            loadError = null;
+
+            try
+            {
+                await Task.Delay(500); 
+                summary = await HealthCheckService.GenerateAsync(Iss, Launch, Debug);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to load health check summary.");
+                loadError = ex.Message;
+            }
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
+        }
+    }
     protected override async Task OnParametersSetAsync()
     {
-        isLoading = true;
-        loadError = null;
-
-        try
-        {
-            summary = await HealthCheckService.GenerateAsync(Iss, Launch, Debug);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to load health check summary.");
-            loadError = ex.Message;
-        }
-        finally
-        {
-            isLoading = false;
-        }
     }
 
     protected static string Display(string? value) => string.IsNullOrWhiteSpace(value) ? "(empty)" : value;
