@@ -1,4 +1,4 @@
-# SmartBodyAI SMART on FHIR standalone app 規格 checklist
+﻿# SmartBodyAI SMART on FHIR standalone app 規格 checklist
 
 ## 摘要
 

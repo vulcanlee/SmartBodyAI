@@ -1,4 +1,4 @@
-下面是一份可直接拿去做設計說明與測試依據的文件草案，目標是讓你的 **ASP.NET Core Blazor（Server-side interactive）SMART App** 符合 **SMART App Launch: Launch and Authorization** 的核心要求，並能拿去對 **SMART sandbox / launcher** 做驗證。這份整理是以你提供的 SMART App Launch 規格頁為主，並補上 conformance、scope / launch context 與 sandbox 官方說明。([FHIR 建置網站][1])
+﻿下面是一份可直接拿去做設計說明與測試依據的文件草案，目標是讓你的 **ASP.NET Core Blazor（Server-side interactive）SMART App** 符合 **SMART App Launch: Launch and Authorization** 的核心要求，並能拿去對 **SMART sandbox / launcher** 做驗證。這份整理是以你提供的 SMART App Launch 規格頁為主，並補上 conformance、scope / launch context 與 sandbox 官方說明。([FHIR 建置網站][1])
 
 ---
 

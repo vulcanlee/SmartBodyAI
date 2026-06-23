@@ -1,4 +1,4 @@
-# 第二階段測試準備清單
+﻿# 第二階段測試準備清單
 
 本專案已支援從 ASP.NET Core User Secrets 或環境變數讀取測試用 `ClientSecret`，不要把主辦單位提供的 secret 寫進 Git 追蹤檔案。
 

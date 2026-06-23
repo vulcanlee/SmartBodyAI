@@ -1,4 +1,4 @@
-# SmartBodyAI 正式主機環境變數設定 SOP
+﻿# SmartBodyAI 正式主機環境變數設定 SOP
 
 本文件說明如何在正式主機上為 SmartBodyAI 設定 `ClientId` 與 `ClientSecret`，並避免將敏感資訊寫入 Git、`appsettings.json` 或部署檔案。
 
