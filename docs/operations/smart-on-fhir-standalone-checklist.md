@@ -1,10 +1,10 @@
-﻿# SmartBodyAI SMART on FHIR standalone app 規格 checklist
+﻿# SmartBodyAI SMART on FHIR app 規格 checklist（standalone + EHR launch）
 
 ## 摘要
 
-- 專案範圍：`standalone only`
-- 支援輪廓：`SMART standalone patient app + confidential client + PKCE + OIDC`
-- 不支援範圍：`EHR launch`
+- 專案範圍：`standalone + EHR launch`
+- 支援輪廓：`SMART standalone / EHR launch patient app + confidential client + PKCE + OIDC`
+- 不支援範圍：`完整嚴格 OIDC 簽章與信任鏈驗證（目前為應用層基本驗證）`
 - 敏感設定說明：`ClientSecret` 不應寫死在版本控制內，必須由環境變數或秘密管理機制提供
 
 ## Checklist
@@ -13,7 +13,7 @@
 | --- | --- | --- | --- |
 | App 可從 standalone 入口啟動 | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | 可直接從首頁啟動 SMART 授權流程，不依賴 EHR 內嵌上下文。 |
 | 可接受 `iss` 作為啟動輸入 | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | `iss` 可覆寫執行時的 FHIR base URL。 |
-| Standalone 流程不強制依賴 `launch` | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | 目前設計是 standalone only，不把 EHR launch 當成必要條件。 |
+| Standalone 流程不強制依賴 `launch` | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs) | standalone 啟動不把 `launch` 當必要條件；若帶入 `iss`/`launch` 則走 EHR launch。 |
 | SMART discovery 優先使用 `/.well-known/smart-configuration` | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | 會先查 SMART well-known metadata。 |
 | SMART discovery 可 fallback 到 `/metadata` | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | 當 well-known metadata 不可用時，會改讀 CapabilityStatement。 |
 | 會解析 `authorization_endpoint` 與 `token_endpoint` | 符合 | [SmartDiscoveryService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartDiscoveryService.cs) | 會取得並驗證 authorize/token endpoint。 |
@@ -38,7 +38,7 @@
 | `fhirUser` 已處理 | 符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs), [SmartResponse.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Models/SmartResponse.cs) | 會從 `id_token` 取出 `fhirUser`。 |
 | 取得 token 後可用 Bearer 呼叫 FHIR API | 符合 | [PatientInformationView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/PatientInformationView.razor.cs) | 會用 Bearer token 存取 Patient、Observation 等資源。 |
 | Health check 可顯示 SMART readiness | 符合 | [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 會顯示 discovery 來源、endpoint readiness、standalone capability readiness 與 OIDC readiness。 |
-| 支援 EHR launch | 不符合 | [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 目前明確是 standalone only，不支援 EHR launch。 |
+| 支援 EHR launch | 符合 | [LaunchView.razor.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Components/Views/LaunchView.razor.cs), [HealthCheckService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/HealthCheckService.cs) | 由 Home.razor 與 `/launch` 接收 `iss`、`launch`、`debug` 並帶入 SMART 授權流程；健康檢查的 Launch Query Consistency 指標亦標示支援 standalone 與 EHR launch。 |
 | 完整嚴格 OIDC 安全驗證 | 部分符合 | [SmartAuthorizationService.cs](/D:/Vulcan/GitHub/SmartBodyAI/source/SmartBodyAI/SmartBodyAI/Services/SmartAuthorizationService.cs) | 目前有 JWT 結構與 claim 驗證，但不是最完整的 OIDC 簽章與信任鏈驗證。 |
 
 ## OIDC 支援說明
@@ -58,7 +58,7 @@
 
 ## 限制與總結
 
-- 本專案目前屬於 `standalone only`，不應宣稱支援 `EHR launch`。
-- 以目前實作來看，可評為「高度符合 SMART on FHIR standalone app 規格」。
-- 較保守且精確的說法是：已具備 standalone app 的主要規格要件，但不建議宣稱完整 EHR launch 相容。
-- OIDC 目前屬基本應用層驗證，不是最嚴格的完整 OIDC 驗證實作。
+- 本專案同時支援 `standalone` 與 `EHR launch`（接收 `iss`/`launch` 參數帶入授權流程）。
+- 以目前實作來看，可評為「高度符合 SMART on FHIR standalone / EHR launch app 規格」。
+- 已具備 standalone 與 EHR launch 的主要規格要件；EHR launch 的實際相容性仍取決於 EHR 端正確帶入 `iss`/`launch` 並註冊 client。
+- OIDC 目前屬基本應用層驗證，不是最嚴格的完整 OIDC 簽章與信任鏈驗證實作。

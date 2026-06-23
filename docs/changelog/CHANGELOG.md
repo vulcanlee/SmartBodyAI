@@ -21,6 +21,7 @@
 
 ### 變更
 - 既有 docs 文件補上 UTF-8 BOM、移入分類子目錄（architecture/、operations/）。
+- 更新 `operations/smart-on-fhir-standalone-checklist.md`：將「standalone only、不支援 EHR launch」更正為**支援 standalone + EHR launch**，使其與 commit `67c4e02` 後的實作一致。
 
 ---
 
