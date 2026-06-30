@@ -18,6 +18,7 @@
   - 參考資料 `reference/`（設定參數、API 端點、術語表）
   - 本變更紀錄 `changelog/CHANGELOG.md`
 - 將 `CLAUDE.md`、`AGENTS.md`、`scripts/Test-DocsEncoding.ps1` 納入版控。
+- 啟動頁（LaunchView）頂部新增成大醫院 (NCKUH) 機構 Logo。
 
 ### 變更
 - 既有 docs 文件補上 UTF-8 BOM、移入分類子目錄（architecture/、operations/）。

@@ -35,6 +35,21 @@ body {
     pointer-events: none;
 }
 
+/* 醫院機構標頭（頂部置中） */
+.hospital-header {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+    .hospital-header img {
+        width: 400px;
+        height: auto;
+        object-fit: contain;
+    }
+
 .hospital-logo {
     width: 200px;
     height: 100%;
