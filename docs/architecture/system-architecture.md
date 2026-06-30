@@ -55,6 +55,23 @@ ISmartAuthorizationService→SmartAuthorizationService
 
 ---
 
+## 2b. 模組職責（SmartAgentApi 後端）
+
+後端是輕量 REST 閘道：接收 DICOM ZIP、入列 CTMS 佇列、彙整結果下載。**本身不驅動推論管線**（管線由 CTMS 外部執行器跑）。
+
+| 目錄 | 職責 | 代表類別 |
+|------|------|---------|
+| `Controllers/` | 對外端點與入列 | `DicomPackController`（`Upload`/`CheckResult`/`Download`/`PushToAICheck`） |
+| `Models/` | 結果與病患 DTO | `BodyAIResult`、`PatientDataModel`（後者目前僅 `PushToAiService` 用） |
+| `Services/` | 入列封裝 | `PushToAiService`（目前未註冊、未使用） |
+| `Program.cs` | 主機/DI | 註冊 CTMS 服務（`AgentService`、`AIIntegrateService` 等） |
+
+> 後端的多階段推論管線（InBound→Phase1/2/3→Complete）、CTMS 相依面、佇列佈局與時序，詳見
+> [`smartagentapi-inference-pipeline.md`](smartagentapi-inference-pipeline.md)；身體組成指標公式、EC/OC 風險模型與資料 schema 見
+> [`../reference/body-composition-and-risk-models.md`](../reference/body-composition-and-risk-models.md)。
+
+---
+
 ## 3. 核心業務流程
 
 ### 3.1 啟動 → 授權 → 病患資料
@@ -84,7 +101,7 @@ ISmartAuthorizationService→SmartAuthorizationService
 10. 輪詢 GET /DicomPack/CheckResult/{checkKey}
 11. 完成後 GET /DicomPack/Download/{checkKey} 下載結果 ZIP
 ```
-端點規格見 [`../reference/api-reference.md`](../reference/api-reference.md)。
+端點規格見 [`../reference/api-reference.md`](../reference/api-reference.md)；後端入列後的多階段推論管線（由 CTMS 外部執行器驅動）與 CTMS 相依面，見 [`smartagentapi-inference-pipeline.md`](smartagentapi-inference-pipeline.md)。
 
 ---
 

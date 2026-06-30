@@ -14,6 +14,7 @@
 | **修正錯誤（Bug Fix）** | `guidelines/constraints.md` → `architecture/system-architecture.md` → `reference/`（設定 / API）→ `architecture/adr/`（理解既定決策，避免誤改） |
 | **調整設定 / 部署** | `reference/configuration-reference.md` → `operations/production-environment-variable-sop.md` |
 | **串接 SmartAgentApi** | `reference/api-reference.md` → `architecture/system-architecture.md` |
+| **理解後端 AI 推論流程 / CTMS 相依** | `architecture/smartagentapi-inference-pipeline.md` → `reference/body-composition-and-risk-models.md` → `architecture/adr/0005-external-ctms-dependency.md` |
 | **理解 SMART on FHIR 授權流程** | `architecture/SMART on FHIR App 啟動與授權設計說明.md` → `architecture/adr/` |
 | **發版 / 提交變更** | `guidelines/versioning.md` → `guidelines/contributing.md` → `changelog/CHANGELOG.md` |
 | **不熟悉領域術語** | `reference/glossary.md` |
@@ -33,12 +34,14 @@
 
 ### architecture/ — 架構與技術設計
 - [`system-architecture.md`](architecture/system-architecture.md) — 系統架構、模組職責、核心流程。
+- [`smartagentapi-inference-pipeline.md`](architecture/smartagentapi-inference-pipeline.md) — 後端 SmartAgentApi 內部、多階段推論管線與 CTMS 相依面（工程深入）。
 - [`SMART on FHIR App 啟動與授權設計說明.md`](architecture/SMART%20on%20FHIR%20App%20啟動與授權設計說明.md) — SMART 授權設計細節。
 - [`adr/`](architecture/adr/) — 架構決策紀錄（ADR）。
 
 ### reference/ — 參考資料
 - [`configuration-reference.md`](reference/configuration-reference.md) — appsettings 設定參數參考表。
 - [`api-reference.md`](reference/api-reference.md) — SmartAgentApi 端點規格。
+- [`body-composition-and-risk-models.md`](reference/body-composition-and-risk-models.md) — 身體組成指標公式、EC/OC 風險模型與資料 schema。
 - [`glossary.md`](reference/glossary.md) — 術語表。
 
 ### operations/ — 運維與測試
