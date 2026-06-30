@@ -21,6 +21,7 @@
 - 啟動頁（LaunchView）頂部新增成大醫院 (NCKUH) 機構 Logo。
 - AI 結果新增「骨骼肌綜合指標 (SMG)」欄位（`BodyAIResult`、`AIResultModel` 與 DICOM 封裝來源 `Total_SMG`）。
 - 補齊後端文件落差：新增 `architecture/smartagentapi-inference-pipeline.md`（SmartAgentApi 內部、多階段推論管線、CTMS 相依面、佇列佈局）與 `reference/body-composition-and-risk-models.md`（身體組成指標公式、EC/OC 風險模型、資料 schema）。`system-architecture.md` 新增後端模組職責節（2b）。
+- 建立 per-project 產品/規格文件集：新增前後端各自 PRD（`prd/smartbodyai-prd.md`、`prd/smartagentapi-prd.md`，導入 `FE-`/`BE-` 需求編號）、功能規格書 `specs/smartbodyai-srs.md`、`specs/smartagentapi-srs.md`、使用者情境/驗收 `specs/use-cases-and-acceptance.md`（含 E2E）、跨系統資料字典 `reference/data-dictionary.md`，以及各專案 README（`source/SmartBodyAI/README.md`、`source/SmartAgentApi/README.md`）。原 `prd/product-requirements.md` 重構為跨系統總覽並指向兩份 PRD。
 
 ### 變更
 - 既有 docs 文件補上 UTF-8 BOM、移入分類子目錄（architecture/、operations/）。
