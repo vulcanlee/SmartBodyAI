@@ -64,7 +64,7 @@ GET /DicomPack/Download/{checkKey}
 |------|------|
 | `checkKey` | 同上 |
 
-**行為**：讀取 `PatientData.json` 與 AI 推論 CSV（`Phase3Result/input.csv`），計算身體組成指標（SMD、IMAT、LAMA、NAMA、SMA、SMI、Myosteatosis），寫入 `BodyAIResult.json`，將結果目錄壓成 ZIP 回傳。
+**行為**：讀取 `PatientData.json` 與 AI 推論 CSV（`Phase3Result/input.csv`），計算身體組成指標（SMD、SMG、IMAT、LAMA、NAMA、SMA、SMI、Myosteatosis），寫入 `BodyAIResult.json`，將結果目錄壓成 ZIP 回傳。指標公式與各資料 schema 見 [`body-composition-and-risk-models.md`](body-composition-and-risk-models.md)。
 
 **回應**
 

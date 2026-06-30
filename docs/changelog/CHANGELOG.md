@@ -20,6 +20,7 @@
 - 將 `CLAUDE.md`、`AGENTS.md`、`scripts/Test-DocsEncoding.ps1` 納入版控。
 - 啟動頁（LaunchView）頂部新增成大醫院 (NCKUH) 機構 Logo。
 - AI 結果新增「骨骼肌綜合指標 (SMG)」欄位（`BodyAIResult`、`AIResultModel` 與 DICOM 封裝來源 `Total_SMG`）。
+- 補齊後端文件落差：新增 `architecture/smartagentapi-inference-pipeline.md`（SmartAgentApi 內部、多階段推論管線、CTMS 相依面、佇列佈局）與 `reference/body-composition-and-risk-models.md`（身體組成指標公式、EC/OC 風險模型、資料 schema）。`system-architecture.md` 新增後端模組職責節（2b）。
 
 ### 變更
 - 既有 docs 文件補上 UTF-8 BOM、移入分類子目錄（architecture/、operations/）。
