@@ -91,6 +91,7 @@ public partial class AIResultView
                 骨骼肌面積SMA = bodyAIResult.SMA骨骼肌面積,
                 骨骼肌指標SMI = bodyAIResult.SMI骨骼肌指標,
                 骨骼肌密度SMD = bodyAIResult.SMD骨骼肌密度,
+                骨骼肌綜合指標SMG = bodyAIResult.SMG骨骼肌綜合指標,
                 肌間肌肉脂肪組織IMAT = bodyAIResult.IMAT肌間肌肉脂肪組織,
                 低密度肌肉區域LAMA = bodyAIResult.LAMA低密度肌肉區域,
                 正常密度肌肉區域NAMA = bodyAIResult.NAMA正常密度肌肉區域,

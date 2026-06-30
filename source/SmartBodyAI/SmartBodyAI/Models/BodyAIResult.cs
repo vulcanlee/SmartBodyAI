@@ -7,6 +7,7 @@ public class BodyAIResult
     public string SMA骨骼肌面積 { get; set; } = "";
     public string SMI骨骼肌指標 { get; set; } = ""; // "低於正常值";
     public string SMD骨骼肌密度 { get; set; } = ""; // "低於正常值";
+    public string SMG骨骼肌綜合指標 { get; set; } = ""; // "低於正常值";
     public string IMAT肌間肌肉脂肪組織 { get; set; } = ""; // "高於正常值";
     public string LAMA低密度肌肉區域 { get; set; } = ""; // "正常";
     public string NAMA正常密度肌肉區域 { get; set; } = ""; // "正常";

@@ -185,6 +185,7 @@ namespace SmartAgentApi.Controllers
             var imageFilename = $"{keyName}/Phase1Result/{keyName}.png";
             bodyAIResult.ImagePng = imageFilename;
             bodyAIResult.SMD骨骼肌密度 = inputCsvModel.Total_SMD.ToFloat().ToString("F2");
+            bodyAIResult.SMG骨骼肌綜合指標 = inputCsvModel.Total_SMG.ToFloat().ToString("F2");
             bodyAIResult.IMAT肌間肌肉脂肪組織 = inputCsvModel.Total_ImatA.ToFloat().ToString("F2");
             bodyAIResult.LAMA低密度肌肉區域 = inputCsvModel.Total_LamaA.ToFloat().ToString("F2");
             bodyAIResult.NAMA正常密度肌肉區域 = inputCsvModel.Total_NamaA.ToFloat().ToString("F2");
