@@ -10,7 +10,8 @@
 
 | 你的任務 | 建議閱讀順序 |
 |---------|------------|
-| **新增功能 / 修改既有功能** | `guidelines/constraints.md` → `prd/product-requirements.md` → `architecture/system-architecture.md` → 相關 `reference/` |
+| **新增功能 / 修改既有功能** | `guidelines/constraints.md` → `prd/product-requirements.md`（及各專案 PRD）→ `architecture/system-architecture.md` → 相關 `reference/` |
+| **撰寫 / 檢視需求規格** | `prd/`（PRD）→ `specs/`（SRS、使用者情境/驗收）→ `reference/data-dictionary.md` |
 | **修正錯誤（Bug Fix）** | `guidelines/constraints.md` → `architecture/system-architecture.md` → `reference/`（設定 / API）→ `architecture/adr/`（理解既定決策，避免誤改） |
 | **調整設定 / 部署** | `reference/configuration-reference.md` → `operations/production-environment-variable-sop.md` |
 | **串接 SmartAgentApi** | `reference/api-reference.md` → `architecture/system-architecture.md` |
@@ -30,7 +31,14 @@
 - [`contributing.md`](guidelines/contributing.md) — 建置、測試、提交、文件同步流程。
 
 ### prd/ — 產品需求
-- [`product-requirements.md`](prd/product-requirements.md) — 產品定位、目標用戶、功能與非功能需求。
+- [`product-requirements.md`](prd/product-requirements.md) — 跨系統產品總覽（定位、用戶、系統級非功能、端到端流程）。
+- [`smartbodyai-prd.md`](prd/smartbodyai-prd.md) — 前端 SmartBodyAI PRD（需求編號 `FE-FR`/`FE-NFR`）。
+- [`smartagentapi-prd.md`](prd/smartagentapi-prd.md) — 後端 SmartAgentApi PRD（需求編號 `BE-FR`/`BE-NFR`）。
+
+### specs/ — 規格與驗收
+- [`smartbodyai-srs.md`](specs/smartbodyai-srs.md) — 前端功能規格書（逐功能 I/O、行為、錯誤處理）。
+- [`smartagentapi-srs.md`](specs/smartagentapi-srs.md) — 後端功能規格書（端點契約、內部行為、錯誤碼）。
+- [`use-cases-and-acceptance.md`](specs/use-cases-and-acceptance.md) — 使用者情境與 Given-When-Then 驗收（含跨系統 E2E）。
 
 ### architecture/ — 架構與技術設計
 - [`system-architecture.md`](architecture/system-architecture.md) — 系統架構、模組職責、核心流程。
@@ -42,6 +50,7 @@
 - [`configuration-reference.md`](reference/configuration-reference.md) — appsettings 設定參數參考表。
 - [`api-reference.md`](reference/api-reference.md) — SmartAgentApi 端點規格。
 - [`body-composition-and-risk-models.md`](reference/body-composition-and-risk-models.md) — 身體組成指標公式、EC/OC 風險模型與資料 schema。
+- [`data-dictionary.md`](reference/data-dictionary.md) — 跨系統資料模型與介面契約。
 - [`glossary.md`](reference/glossary.md) — 術語表。
 
 ### operations/ — 運維與測試
